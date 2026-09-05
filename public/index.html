@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bengali Homeopathic Clinic — Patient Records & OPD</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+</head>
+<body class="dashboard-body">
+
+    <!-- ─── Vibrant Navbar ─── -->
+    <nav class="navbar navbar-vibrant">
+        <a href="/" class="navbar-brand">
+            <div class="logo-circle">⚕</div>
+            <div>
+                <h1 class="brand-title">Bengali Homeopathic Clinic</h1>
+                <div class="brand-subtitle">
+                    Dr. Sapan Bakshi · BHMS (WBUMS) Kolkata · Reg. No. 30444
+                </div>
+            </div>
+        </a>
+        <div class="navbar-right">
+            <a href="tel:9304275795" class="phone-chip">
+                <span class="phone-icon">📞</span>
+                <span>93042 75795</span>
+            </a>
+            <span class="status-pill">
+                <span class="status-dot"></span> OPD Active
+            </span>
+        </div>
+    </nav>
+
+    <!-- ─── Main Content Container ─── -->
+    <div class="container main-container">
+
+        <!-- ─── Doctor Hero Welcome Banner ─── -->
+        <div class="hero-welcome">
+            <div class="hero-left">
+                <h2>Doctor's OPD Dashboard</h2>
+                <p class="hero-desc">
+                    📍 Sarisab Pahi, Pandual, Madhubani — 847424, Bihar &nbsp;|&nbsp; Search patients, manage records & print OPD slips.
+                </p>
+            </div>
+            <div class="hero-right">
+                <div class="date-badge" id="currentDateBadge">
+                    📅 <span id="liveDateText">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 4 Colorful Stat / KPI Cards ─── -->
+        <div class="stats-grid">
+            <div class="stat-card stat-blue">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="statPatients">0</span>
+                    <span class="stat-label">Total Patients</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-green">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="statPrescriptions">0</span>
+                    <span class="stat-label">Prescriptions Issued</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-amber">
+                <div class="stat-icon">🩺</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="statToday">0</span>
+                    <span class="stat-label">Today's Registrations</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-purple">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-info">
+                    <span class="stat-number" style="font-size:1.15rem; font-weight:700;">1-Click</span>
+                    <span class="stat-label">Print Slip for Pen</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Search Card (Clear, Bright & Prominent) ─── -->
+        <div class="card search-card">
+            <div class="card-header-bar">
+                <div class="card-title-group">
+                    <span class="card-badge-icon">🔍</span>
+                    <div>
+                        <h3 class="card-heading">Find Patient</h3>
+                        <p class="card-subheading">Search by Patient Name, Phone Number, or Unique ID</p>
+                    </div>
+                </div>
+                <button class="btn btn-emerald btn-lg" id="newPatientBtn">
+                    <span style="font-size:1.15rem; font-weight:700;">+</span> Register New Patient
+                </button>
+            </div>
+
+            <div class="search-form-row">
+                <div class="search-input-box">
+                    <span class="search-glass-icon">🔎</span>
+                    <input type="text" 
+                           id="searchInput" 
+                           placeholder="Type patient name, phone number, or ID (e.g. Ramesh, 98350, PAT-00001)..." 
+                           autocomplete="off">
+                    <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Clear">✕</button>
+                </div>
+                <button class="btn btn-sapphire btn-lg" id="searchBtn">
+                    Search Patient
+                </button>
+            </div>
+        </div>
+
+        <!-- ─── Patient Detail Section (Shows when clicked) ─── -->
+        <div id="patientDetail" class="card patient-detail-card hidden">
+            <div class="detail-header-vibrant">
+                <div class="detail-profile">
+                    <div class="detail-avatar" id="detailAvatar">--</div>
+                    <div>
+                        <div class="detail-name" id="detailName"></div>
+                        <span class="detail-id-pill" id="detailPatientId"></span>
+                    </div>
+                </div>
+                <div class="detail-actions">
+                    <button class="btn btn-emerald btn-lg" id="printBlankPadBtn">
+                        🖨️ Print OPD Patient Card (Write with Pen)
+                    </button>
+                    <button class="btn btn-sapphire btn-lg" id="editPatientBtn">
+                        ✏️ Edit Details
+                    </button>
+                </div>
+            </div>
+
+            <!-- Colorful Demographic Info Grid -->
+            <div class="info-chips-grid">
+                <div class="info-chip chip-blue">
+                    <div class="chip-icon">🎂</div>
+                    <div>
+                        <div class="chip-label">AGE</div>
+                        <div class="chip-val" id="detailAge">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-indigo">
+                    <div class="chip-icon">⚧</div>
+                    <div>
+                        <div class="chip-label">GENDER</div>
+                        <div class="chip-val" id="detailGender">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-purple">
+                    <div class="chip-icon">📞</div>
+                    <div>
+                        <div class="chip-label">MOBILE NO</div>
+                        <div class="chip-val" id="detailPhone">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-emerald">
+                    <div class="chip-icon">🏠</div>
+                    <div>
+                        <div class="chip-label">PATIENT ADDRESS</div>
+                        <div class="chip-val" id="detailAddress">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prescription History -->
+            <div class="section-title-bar">
+                <span class="title-text">📋 Past Prescriptions & Medical History</span>
+            </div>
+            <div id="rxHistory"></div>
+        </div>
+
+        <!-- ─── Directory / Search Results Section ─── -->
+        <div class="directory-section">
+            <div class="directory-header">
+                <div class="directory-title">
+                    <span class="dir-icon">📂</span>
+                    <span id="resultsTitle">Recent Patients Directory</span>
+                    <span class="count-pill" id="resultsCount">0</span>
+                </div>
+                <span class="dir-hint">Click any patient to view details, or click "Print Slip" to print immediately.</span>
+            </div>
+
+            <!-- Patient Cards Container -->
+            <div id="searchResults" class="results-grid">
+                <!-- Populated automatically by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── Register New Patient Modal ─── -->
+    <div class="modal-overlay" id="patientModal">
+        <div class="modal modal-vibrant">
+            <div class="modal-header-vibrant">
+                <div class="modal-title-group">
+                    <span class="modal-icon">👤</span>
+                    <div>
+                        <h3>Register New Patient</h3>
+                        <p>Fill in patient demographics to generate a unique ID & print OPD slip</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="cancelPatientBtn" title="Close">✕</button>
+            </div>
+
+            <form id="patientForm">
+                <div class="modal-body-vibrant">
+                    <div class="form-group">
+                        <label>Patient's Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" placeholder="e.g. Ramesh Kumar, Sunita Devi" required autocomplete="off">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age (Years) <span class="required">*</span></label>
+                            <input type="number" name="age" min="0" max="130" placeholder="e.g. 42" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender <span class="required">*</span></label>
+                            <select name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" name="phone" placeholder="e.g. 98350 12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patient Address (Village / Mohalla, Post, District)</label>
+                        <input type="text" name="address" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani">
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" id="cancelPatientBtn2">Cancel</button>
+                    <button type="submit" class="btn btn-emerald btn-lg">
+                        ✓ Save & Open Patient Slip
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Edit Patient Details Modal ─── -->
+    <div class="modal-overlay" id="editPatientModal">
+        <div class="modal modal-vibrant">
+            <div class="modal-header-vibrant edit-header">
+                <div class="modal-title-group">
+                    <span class="modal-icon">✏️</span>
+                    <div>
+                        <h3>Edit Patient Details</h3>
+                        <p>Updating records for <span class="id-badge-sharp" id="editPatientIdBadge">PAT-00000</span></p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="cancelEditPatientBtn" title="Close">✕</button>
+            </div>
+
+            <form id="editPatientForm">
+                <input type="hidden" name="patient_id" id="editPatientId">
+                <div class="modal-body-vibrant">
+                    <div class="form-group">
+                        <label>Patient's Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" id="editPatientName" placeholder="e.g. Ramesh Kumar, Sunita Devi" required autocomplete="off">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age (Years) <span class="required">*</span></label>
+                            <input type="number" name="age" id="editPatientAge" min="0" max="130" placeholder="e.g. 42" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender <span class="required">*</span></label>
+                            <select name="gender" id="editPatientGender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" name="phone" id="editPatientPhone" placeholder="e.g. 98350 12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patient Address (Village / Mohalla, Post, District)</label>
+                        <input type="text" name="address" id="editPatientAddress" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani">
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" id="cancelEditPatientBtn2">Cancel</button>
+                    <button type="submit" class="btn btn-emerald btn-lg" id="saveEditPatientBtn">
+                        ✓ Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Toast Notifications ─── -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

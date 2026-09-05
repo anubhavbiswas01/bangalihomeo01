@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescription — Bengali Homeopathic Clinic</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+    <style>
+        /* ============================================================
+           CLEAN PRESCRIPTION PAD — CLINICAL NOTES & ADVICE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #eceff1;
+            color: #111;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        /* ── Screen Actions Bar ── */
+        .no-print {
+            background: #1a5276;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1.35rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-print {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-print:hover {
+            background: #219a52;
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* ── Sheet Container ── */
+        .opd-page {
+            max-width: 820px;
+            margin: 1.5rem auto;
+            background: #ffffff;
+            padding: 22px 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #ccc;
+        }
+
+        /* ── Centered Clinic Header ── */
+        .clinic-header {
+            text-align: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #111;
+        }
+
+        .clinic-name {
+            font-size: 19px;
+            font-weight: 800;
+            color: #000;
+            letter-spacing: 0.5px;
+            line-height: 1.25;
+            text-transform: uppercase;
+        }
+
+        .clinic-sub {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #222;
+            margin-top: 3px;
+        }
+
+        .clinic-doctor {
+            font-size: 12px;
+            font-weight: 600;
+            color: #111;
+            margin-top: 3px;
+        }
+
+        /* ── Patient Demographic Card ── */
+        .patient-card-box {
+            border: 1px solid #222;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            line-height: 1.55;
+            background: #fff;
+        }
+
+        .patient-grid-row {
+            display: grid;
+            grid-template-columns: 2.2fr 1.6fr 1.6fr;
+            column-gap: 14px;
+            padding: 1.5px 0;
+        }
+
+        .patient-field {
+            display: flex;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .patient-field .f-label {
+            font-weight: 700;
+            color: #111;
+            margin-right: 5px;
+            flex-shrink: 0;
+        }
+
+        .patient-field .f-val {
+            color: #000;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .patient-field .f-val.bold {
+            font-weight: 800;
+        }
+
+        .patient-field.underline-title .f-label {
+            text-decoration: underline;
+        }
+
+        /* ── Main Big Clinical Notes & Advice Box ── */
+        .clinical-box {
+            border: 1px solid #222;
+            border-radius: 6px;
+            min-height: 720px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .clinical-header-row {
+            display: flex;
+            border-bottom: 1px solid #222;
+            background: #fff;
+        }
+
+        .clinical-header-left {
+            width: 38%;
+            text-align: center;
+            padding: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            border-right: 1px solid #222;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clinical-header-right {
+            width: 62%;
+            text-align: center;
+            padding: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clinical-body {
+            display: flex;
+            flex: 1;
+            min-height: 680px;
+        }
+
+        .clinical-notes-col {
+            width: 38%;
+            border-right: 1px solid #222;
+            padding: 14px;
+            position: relative;
+        }
+
+        .advice-col {
+            width: 62%;
+            padding: 14px 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .printed-complaints-note {
+            font-size: 11px;
+            color: #222;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .printed-complaints-note strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 10.5px;
+            text-transform: uppercase;
+            color: #333;
+        }
+
+        .rx-mark {
+            font-size: 28px;
+            font-family: Georgia, serif;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+        }
+
+        /* Doctor Signature at bottom of Advice */
+        .doc-signature-area {
+            align-self: flex-end;
+            margin-top: auto;
+            text-align: center;
+            padding-top: 16px;
+            width: 210px;
+        }
+
+        .doc-signature-line {
+            border-top: 1px solid #222;
+            padding-top: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #111;
+            line-height: 1.4;
+        }
+
+        /* ============================================================
+           PRINT MEDIA SPECIFICATIONS (Exact 1-Page A4)
+           ============================================================ */
+        @media print {
+            body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                font-size: 11px !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .opd-page {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 16px 20px !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            .clinical-box {
+                min-height: 820px !important;
+            }
+
+            .clinical-body {
+                min-height: 780px !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 8mm 6mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- On-screen controls -->
+    <div class="no-print">
+        <button class="btn btn-print" onclick="window.print()">
+            🖨️ Print Prescription
+        </button>
+        <button class="btn btn-back" onclick="window.location='/'">
+            ← Back to Dashboard
+        </button>
+    </div>
+
+    <!-- ─── Prescription / OPD Slip ─── -->
+    <div class="opd-page" id="opdCard">
+
+        <!-- ── Centered Clinic Header ── -->
+        <div class="clinic-header">
+            <div class="clinic-name">BENGALI HOMEOPATHIC CLINIC</div>
+            <div class="clinic-sub">SARISAB PAHI, PANDUAL, MADHUBANI, BIHAR — 847424</div>
+            <div class="clinic-doctor">
+                <strong>Dr. Sapan Bakshi</strong>, BHMS (WBUMS) Kolkata &nbsp;|&nbsp; <strong>Reg. No.:</strong> 30444 &nbsp;|&nbsp; <strong>Mob:</strong> 93042 75795
+            </div>
+        </div>
+
+        <!-- ── Box 1: Patient Demographic Card ── -->
+        <div class="patient-card-box">
+            <!-- Row 1 -->
+            <div class="patient-grid-row">
+                <div class="patient-field underline-title">
+                    <span class="f-label">Name :</span>
+                    <span class="f-val bold" id="pName">--</span>
+                </div>
+                <div class="patient-field">
+                    <span class="f-label">Age :</span>
+                    <span class="f-val" id="pAge">--</span>
+                </div>
+                <div class="patient-field">
+                    <span class="f-label">Gender :</span>
+                    <span class="f-val" id="pGender">--</span>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="patient-grid-row">
+                <div class="patient-field">
+                    <span class="f-label">Mobile No :</span>
+                    <span class="f-val" id="pMobile">--</span>
+                </div>
+                <div class="patient-field">
+                    <span class="f-label">Visit Date :</span>
+                    <span class="f-val" id="pVisitDate">--</span>
+                </div>
+                <div class="patient-field underline-title">
+                    <span class="f-label">Patient ID :</span>
+                    <span class="f-val bold" id="pUniqueId">--</span>
+                </div>
+            </div>
+
+            <!-- Row 3: Dedicated Full Width for Patient Address -->
+            <div class="patient-grid-row" style="grid-template-columns: 1fr; margin-top: 3px;">
+                <div class="patient-field underline-title" style="width: 100%; display: flex; align-items: baseline;">
+                    <span class="f-label">Patient Address :</span>
+                    <span class="f-val" id="pAddress" style="flex: 1; padding-left: 4px;"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Box 2: Main Big Clinical Notes & Advice Box (Maximum Space for Pen Writing) ── -->
+        <div class="clinical-box">
+            <!-- Header row with vertical divider -->
+            <div class="clinical-header-row">
+                <div class="clinical-header-left">Clinical Notes</div>
+                <div class="clinical-header-right">Advice</div>
+            </div>
+
+            <!-- Open Body for Writing with Pen -->
+            <div class="clinical-body">
+                <!-- Left: Clinical Notes (Complaints / Symptoms written with pen) -->
+                <div class="clinical-notes-col" id="clinicalNotesCol">
+                    <div id="printedComplaints" class="printed-complaints-note" style="display:none;"></div>
+                </div>
+
+                <!-- Right: Advice (Medicines & Dietary instructions written with pen) -->
+                <div class="advice-col" id="adviceCol">
+                    <div>
+                        <div class="rx-mark">℞</div>
+                    </div>
+
+                    <!-- Doctor's Signature Area at Bottom -->
+                    <div class="doc-signature-area">
+                        <div class="doc-signature-line">
+                            Dr. Sapan Bakshi<br>
+                            BHMS (WBUMS) Kolkata<br>
+                            Reg. No. 30444<br>
+                            Mob: 93042 75795
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script to load patient & render prescription -->
+    <script src="/js/print.js"></script>
+</body>
+</html>

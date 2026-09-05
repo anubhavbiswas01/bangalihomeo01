@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Prescription — Bengali Homeopathic Clinic</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+</head>
+<body>
+
+    <!-- ─── Navbar ─── -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="logo">⚕</div>
+            <div>
+                <h1>Bengali Homeopathic Clinic</h1>
+                <div class="subtitle">Dr. Sapan Bakshi · BHMS (WBUMS) · Reg. 30444 · Mob: 93042 75795</div>
+            </div>
+        </a>
+        <div class="navbar-nav">
+            <a href="/">← Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- ─── Main Content ─── -->
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2>New Prescription</h2>
+            <p>Create a prescription for the selected patient.</p>
+        </div>
+
+        <!-- Patient Info Bar -->
+        <div class="info-bar" id="patientInfoBar">
+            <div class="info-left">
+                <div class="info-avatar" id="rxPatientAvatar">—</div>
+                <div>
+                    <div class="info-name" id="rxPatientName">Loading…</div>
+                    <div class="info-details">
+                        <span class="patient-id-badge" id="rxPatientId"></span>
+                        <span style="margin-left: 0.75rem;" id="rxPatientMeta"></span>
+                    </div>
+                    <div id="rxPatientAddress" style="font-size: 0.8rem; color: var(--gray-600); margin-top: 0.25rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription Form -->
+        <div class="card">
+            <div class="card-header">
+                <h3>
+                    <span class="icon icon-accent">📋</span>
+                    Prescription Details
+                </h3>
+            </div>
+            <form id="prescriptionForm">
+
+                <!-- ─── Options for Complaint ─── -->
+                <div class="complaints-box">
+                    <div class="complaints-header">
+                        <div class="complaints-chips-title">🩺 Options for Complaint (Click to select/unselect):</div>
+                        <button type="button" class="btn btn-ghost btn-sm" id="clearComplaintsBtn" style="font-size:0.75rem;">Clear</button>
+                    </div>
+                    <div class="complaints-chips" id="complaintChips">
+                        <span class="complaint-chip" data-val="Fever (बुखार)"><span class="chip-check">✓ </span>Fever (बुखार)</span>
+                        <span class="complaint-chip" data-val="Cough & Cold (सर्दी/खांसी)"><span class="chip-check">✓ </span>Cough & Cold (सर्दी/खांसी)</span>
+                        <span class="complaint-chip" data-val="Headache (सिरदर्द)"><span class="chip-check">✓ </span>Headache (सिरदर्द)</span>
+                        <span class="complaint-chip" data-val="Acidity / Gas (गैस)"><span class="chip-check">✓ </span>Acidity / Gas (गैस)</span>
+                        <span class="complaint-chip" data-val="Stomach Pain (पेट दर्द)"><span class="chip-check">✓ </span>Stomach Pain (पेट दर्द)</span>
+                        <span class="complaint-chip" data-val="Constipation (कब्ज)"><span class="chip-check">✓ </span>Constipation (कब्ज)</span>
+                        <span class="complaint-chip" data-val="Diarrhea / Loose Motion (दस्त)"><span class="chip-check">✓ </span>Diarrhea (दस्त)</span>
+                        <span class="complaint-chip" data-val="Joint / Knee Pain (जोड़ों का दर्द)"><span class="chip-check">✓ </span>Joint / Knee Pain (गठिया/दर्द)</span>
+                        <span class="complaint-chip" data-val="Back Pain (कमर दर्द)"><span class="chip-check">✓ </span>Back Pain (कमर दर्द)</span>
+                        <span class="complaint-chip" data-val="Skin Allergy / Itching (खुजली)"><span class="chip-check">✓ </span>Skin Allergy / Itching (खुजली)</span>
+                        <span class="complaint-chip" data-val="Weakness / Fatigue (कमजोरी)"><span class="chip-check">✓ </span>Weakness (कमजोरी)</span>
+                        <span class="complaint-chip" data-val="Loss of Appetite (भूख न लगना)"><span class="chip-check">✓ </span>Loss of Appetite</span>
+                        <span class="complaint-chip" data-val="Sore Throat / Tonsillitis"><span class="chip-check">✓ </span>Sore Throat / Tonsils</span>
+                        <span class="complaint-chip" data-val="Breathing Trouble / Asthma"><span class="chip-check">✓ </span>Breathing Trouble</span>
+                        <span class="complaint-chip" data-val="Piles / Fissure"><span class="chip-check">✓ </span>Piles / Fissure</span>
+                        <span class="complaint-chip" data-val="Insomnia / Sleeplessness"><span class="chip-check">✓ </span>Sleeplessness (अनिद्रा)</span>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Chief Complaints & Symptoms</label>
+                        <textarea name="complaints" id="complaintsInput" rows="2" placeholder="Selected complaints will appear here. You can also type custom complaints and symptoms..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Diagnosis / Clinical Findings</label>
+                    <textarea name="diagnosis" rows="2" placeholder="e.g. Acute coryza, Gastritis, Osteoarthritis, Allergic dermatitis…"></textarea>
+                </div>
+
+                <!-- ─── Medicines Section with Wide Space ─── -->
+                <div class="flex-between mt-2 mb-1">
+                    <div>
+                        <div class="section-title" style="margin:0;">℞ Medications & Remedies</div>
+                        <p style="font-size:0.75rem; color: var(--gray-500); margin-top:2px;">Type or select remedy name, potency, dose, frequency, and duration</p>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="addMedBtn">+ Add Medicine Row</button>
+                </div>
+
+                <!-- Remedy Datalist for fast homeopathic suggestions -->
+                <datalist id="commonRemedies">
+                    <option value="Aconitum Napellus 30C">
+                    <option value="Aconitum Napellus 200C">
+                    <option value="Arnica Montana 30C">
+                    <option value="Arnica Montana 200C">
+                    <option value="Arnica Montana 1M">
+                    <option value="Arsenicum Album 30C">
+                    <option value="Arsenicum Album 200C">
+                    <option value="Belladonna 30C">
+                    <option value="Belladonna 200C">
+                    <option value="Bryonia Alba 30C">
+                    <option value="Bryonia Alba 200C">
+                    <option value="Calcarea Carbonica 200C">
+                    <option value="Cantharis 30C">
+                    <option value="Cantharis 200C">
+                    <option value="Carbo Vegetabilis 30C">
+                    <option value="Carbo Vegetabilis 200C">
+                    <option value="Chamomilla 30C">
+                    <option value="Chamomilla 200C">
+                    <option value="China Officinalis 30C">
+                    <option value="China Officinalis Q">
+                    <option value="Colocynthis 30C">
+                    <option value="Colocynthis 200C">
+                    <option value="Drosera Rotundifolia 30C">
+                    <option value="Dulcamara 30C">
+                    <option value="Gelsemium Sempervirens 30C">
+                    <option value="Gelsemium Sempervirens 200C">
+                    <option value="Hepar Sulphur 30C">
+                    <option value="Hepar Sulphur 200C">
+                    <option value="Hypericum Perforatum 30C">
+                    <option value="Hypericum Perforatum 200C">
+                    <option value="Ignatia Amara 30C">
+                    <option value="Ignatia Amara 200C">
+                    <option value="Ipecacuanha 30C">
+                    <option value="Kali Bichromicum 30C">
+                    <option value="Lachesis Mutus 200C">
+                    <option value="Lycopodium Clavatum 30C">
+                    <option value="Lycopodium Clavatum 200C">
+                    <option value="Mercurius Solubilis 30C">
+                    <option value="Mercurius Solubilis 200C">
+                    <option value="Natrum Muriaticum 30C">
+                    <option value="Natrum Muriaticum 200C">
+                    <option value="Nux Vomica 30C">
+                    <option value="Nux Vomica 200C">
+                    <option value="Nux Vomica 1M">
+                    <option value="Phosphorus 30C">
+                    <option value="Phosphorus 200C">
+                    <option value="Pulsatilla Nigricans 30C">
+                    <option value="Pulsatilla Nigricans 200C">
+                    <option value="Rhus Toxicodendron 30C">
+                    <option value="Rhus Toxicodendron 200C">
+                    <option value="Ruta Graveolens 30C">
+                    <option value="Ruta Graveolens 200C">
+                    <option value="Sepia Officinalis 200C">
+                    <option value="Silicea 30C">
+                    <option value="Silicea 200C">
+                    <option value="Sulphur 30C">
+                    <option value="Sulphur 200C">
+                    <option value="Thuja Occidentalis 30C">
+                    <option value="Thuja Occidentalis 200C">
+                    <option value="Thuja Occidentalis 1M">
+                    <option value="Berberis Vulgaris Q">
+                    <option value="Crataegus Oxyacantha Q">
+                    <option value="Echinacea Angustifolia Q">
+                    <option value="Passiflora Incarnata Q">
+                    <option value="Syzygium Jambolanum Q">
+                </datalist>
+
+                <!-- Spacious Table for Medicines -->
+                <table class="medicines-table" id="medicinesTable">
+                    <thead>
+                        <tr>
+                            <th style="width:36px">#</th>
+                            <th style="width:45%">Medicine Name / Remedy (with Potency)</th>
+                            <th style="width:17%">Dosage</th>
+                            <th style="width:18%">Frequency</th>
+                            <th style="width:14%">Duration</th>
+                            <th style="width:42px"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicinesBody">
+                    </tbody>
+                </table>
+
+                <hr class="divider">
+
+                <div class="form-group">
+                    <label>Dietary Restrictions, Advice & Notes</label>
+                    <textarea name="notes" rows="3" placeholder="e.g. Avoid raw onion, garlic, sour food, coffee. Take on clean tongue 15 mins before or after meal. Follow up after 7 days…"></textarea>
+                </div>
+
+                <div class="flex gap-1 mt-2" style="justify-content: flex-end; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-outline" onclick="window.location='/'">Cancel</button>
+                    <button type="button" class="btn btn-primary btn-lg" id="printPenSlipBtn">
+                        🖨️ Print OPD Card (Write with Pen)
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        💾 Save & Print
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/prescription.js"></script>
+</body>
+</html>
