@@ -38,6 +38,20 @@ router.post('/', (req, res) => {
     }
 });
 
+// ── GET /api/patients — Return all registered patients ──
+router.get('/', (req, res) => {
+    try {
+        const patients = db.all(
+            `SELECT * FROM patients
+             ORDER BY id DESC`
+        );
+        res.json(patients);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch all patients.' });
+    }
+});
+
 // ── GET /api/patients/stats — Summary counts for dashboard ──
 router.get('/stats', (req, res) => {
     try {
@@ -63,7 +77,16 @@ router.get('/search', (req, res) => {
     try {
         const q = (req.query.q || '').trim();
 
+        const showAll = req.query.all === 'true';
+
         if (!q) {
+            if (showAll) {
+                const allPatients = db.all(
+                    `SELECT * FROM patients
+                     ORDER BY id DESC`
+                );
+                return res.json(allPatients);
+            }
             // Return latest 25 registered patients for recent list
             const recent = db.all(
                 `SELECT * FROM patients

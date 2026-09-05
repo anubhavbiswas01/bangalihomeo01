@@ -1775,6 +1775,37 @@ body {
     font-weight: 500;
 }
 
+.directory-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-tab-btn {
+    border-radius: 8px;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+}
+
+.filter-tab-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+
+.filter-tab-btn.active-tab {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    color: #ffffff;
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
 /* ── Vibrant Patient Cards ── */
 .results-grid {
     display: grid;

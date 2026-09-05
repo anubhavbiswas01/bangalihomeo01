@@ -62,9 +62,14 @@ const editPatientForm = document.getElementById('editPatientForm');
 const cancelEditPatientBtn = document.getElementById('cancelEditPatientBtn');
 const cancelEditPatientBtn2 = document.getElementById('cancelEditPatientBtn2');
 const deletePatientBtn = document.getElementById('deletePatientBtn');
+const statCardPatients = document.getElementById('statCardPatients');
+const viewAllSearchBtn = document.getElementById('viewAllSearchBtn');
+const filterRecentBtn = document.getElementById('filterRecentBtn');
+const filterAllBtn = document.getElementById('filterAllBtn');
 
 let currentPatient = null;
 let searchTimeout = null;
+let currentViewMode = 'recent'; // 'recent' or 'all'
 
 // ===== Update Live Date & Time =====
 function updateDateBadge() {
@@ -88,24 +93,58 @@ async function loadStats() {
 }
 
 // ===== Load & Render Patients =====
-async function doSearch() {
+async function doSearch(forceAll = false) {
     const q = searchInput.value.trim();
 
+    if (forceAll) {
+        currentViewMode = 'all';
+    } else if (q) {
+        currentViewMode = 'search';
+    }
+
+    // Update active tab styling
+    if (filterRecentBtn && filterAllBtn) {
+        if (currentViewMode === 'all') {
+            filterAllBtn.classList.add('active-tab');
+            filterRecentBtn.classList.remove('active-tab');
+        } else if (currentViewMode === 'recent') {
+            filterRecentBtn.classList.add('active-tab');
+            filterAllBtn.classList.remove('active-tab');
+        } else {
+            filterRecentBtn.classList.remove('active-tab');
+            filterAllBtn.classList.remove('active-tab');
+        }
+    }
+
     try {
-        const url = q ? `/api/patients/search?q=${encodeURIComponent(q)}` : '/api/patients/search';
+        let url;
+        if (q) {
+            url = `/api/patients/search?q=${encodeURIComponent(q)}`;
+        } else if (currentViewMode === 'all') {
+            url = `/api/patients?all=true`;
+        } else {
+            url = `/api/patients/search`;
+        }
+
         const patients = await api(url);
 
-        resultsCount.textContent = patients.length;
-        resultsTitle.textContent = q ? `Search Results for "${q}"` : 'Recent Patients Directory';
+        resultsCount.textContent = `${patients.length} Patient${patients.length === 1 ? '' : 's'}`;
+        if (q) {
+            resultsTitle.textContent = `Search Results for "${q}"`;
+        } else if (currentViewMode === 'all') {
+            resultsTitle.textContent = `All Registered Patients`;
+        } else {
+            resultsTitle.textContent = `Recent Patients Directory`;
+        }
 
         if (patients.length === 0) {
             searchResults.innerHTML = `
                 <div class="empty-state-vibrant">
                     <div class="empty-icon-circle">🔍</div>
-                    <h4>No patients found for "${q}"</h4>
-                    <p>Would you like to register this patient now?</p>
-                    <button class="btn btn-emerald btn-lg" onclick="openModalWithName('${q.replace(/'/g, "\\'")}')">
-                        + Register "${q}"
+                    <h4>No patients found ${q ? `for "${q}"` : 'in database'}</h4>
+                    <p>${q ? 'Would you like to register this patient now?' : 'Register your first patient to begin.'}</p>
+                    <button class="btn btn-emerald btn-lg" onclick="openModalWithName('${(q || '').replace(/'/g, "\\'")}')">
+                        + Register ${q ? `"${q}"` : 'New Patient'}
                     </button>
                 </div>`;
             return;
@@ -155,21 +194,41 @@ async function doSearch() {
     }
 }
 
+function showAllPatients() {
+    searchInput.value = '';
+    currentViewMode = 'all';
+    doSearch(true);
+    const dirEl = document.getElementById('directorySection');
+    if (dirEl) dirEl.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showRecentPatients() {
+    searchInput.value = '';
+    currentViewMode = 'recent';
+    doSearch();
+}
+
 // Instant debounced search
 searchInput.addEventListener('input', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(doSearch, 250);
 });
 
-searchBtn.addEventListener('click', doSearch);
+searchBtn.addEventListener('click', () => doSearch());
 searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 
 if (clearSearchBtn) {
     clearSearchBtn.addEventListener('click', () => {
         searchInput.value = '';
+        currentViewMode = 'recent';
         doSearch();
     });
 }
+
+if (viewAllSearchBtn) viewAllSearchBtn.addEventListener('click', showAllPatients);
+if (filterAllBtn) filterAllBtn.addEventListener('click', showAllPatients);
+if (filterRecentBtn) filterRecentBtn.addEventListener('click', showRecentPatients);
+if (statCardPatients) statCardPatients.addEventListener('click', showAllPatients);
 
 // ===== Load Selected Patient Details =====
 async function loadPatient(patientId) {

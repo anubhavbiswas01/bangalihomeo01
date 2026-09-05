@@ -51,11 +51,11 @@
 
         <!-- ─── 4 Colorful Stat / KPI Cards ─── -->
         <div class="stats-grid">
-            <div class="stat-card stat-blue">
+            <div class="stat-card stat-blue cursor-pointer" id="statCardPatients" title="Click to View All Patients" style="cursor: pointer;">
                 <div class="stat-icon">👥</div>
                 <div class="stat-info">
                     <span class="stat-number" id="statPatients">0</span>
-                    <span class="stat-label">Total Patients</span>
+                    <span class="stat-label">Total Patients (View All ↗)</span>
                 </div>
             </div>
 
@@ -110,6 +110,9 @@
                 </div>
                 <button class="btn btn-sapphire btn-lg" id="searchBtn">
                     Search Patient
+                </button>
+                <button type="button" class="btn btn-outline btn-lg" id="viewAllSearchBtn" title="View all registered patients" style="font-weight:700;">
+                    👥 View All Patients
                 </button>
             </div>
         </div>
@@ -180,14 +183,21 @@
         </div>
 
         <!-- ─── Directory / Search Results Section ─── -->
-        <div class="directory-section">
+        <div class="directory-section" id="directorySection">
             <div class="directory-header">
                 <div class="directory-title">
                     <span class="dir-icon">📂</span>
                     <span id="resultsTitle">Recent Patients Directory</span>
                     <span class="count-pill" id="resultsCount">0</span>
                 </div>
-                <span class="dir-hint">Click any patient to view details, or click "Print Slip" to print immediately.</span>
+                <div class="directory-actions-row">
+                    <button type="button" class="filter-tab-btn active-tab" id="filterRecentBtn">
+                        ⚡ Recent (25)
+                    </button>
+                    <button type="button" class="filter-tab-btn" id="filterAllBtn">
+                        👥 View All Patients
+                    </button>
+                </div>
             </div>
 
             <!-- Patient Cards Container -->
