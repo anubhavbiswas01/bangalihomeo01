@@ -60,7 +60,9 @@ router.post('/', async (req, res) => {
 router.get('/:rxId', async (req, res) => {
     try {
         const prescription = await db.get(
-            `SELECT p.*, pt.patient_id AS patient_code, pt.name, pt.age, pt.gender, pt.phone, pt.address
+            `SELECT p.*, pt.patient_id AS patient_code, pt.name, pt.age, pt.gender, pt.phone, pt.address,
+                    pt.created_at AS patient_created_at,
+                    (SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.patient_id AND id != p.id AND created_at <= p.created_at) AS previous_visit_date
              FROM prescriptions p
              JOIN patients pt ON pt.id = p.patient_id
              WHERE p.rx_id = ? OR p.id = ?`,

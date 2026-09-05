@@ -129,6 +129,11 @@
             padding: 1.5px 0;
         }
 
+        .patient-grid-row-4 {
+            grid-template-columns: 1.3fr 1.6fr 1.3fr 1.2fr;
+            column-gap: 10px;
+        }
+
         .patient-field {
             display: flex;
             white-space: nowrap;
@@ -339,7 +344,7 @@
             </div>
 
             <!-- Row 2 -->
-            <div class="patient-grid-row">
+            <div class="patient-grid-row patient-grid-row-4">
                 <div class="patient-field">
                     <span class="f-label">Mobile No :</span>
                     <span class="f-val" id="pMobile">--</span>
@@ -347,6 +352,10 @@
                 <div class="patient-field">
                     <span class="f-label">Visit Date :</span>
                     <span class="f-val" id="pVisitDate">--</span>
+                </div>
+                <div class="patient-field">
+                    <span class="f-label">Last Visit :</span>
+                    <span class="f-val" id="pLastVisitDate">--</span>
                 </div>
                 <div class="patient-field underline-title">
                     <span class="f-label">Patient ID :</span>

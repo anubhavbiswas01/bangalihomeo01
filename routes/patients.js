@@ -42,8 +42,10 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const patients = await db.all(
-            `SELECT * FROM patients
-             ORDER BY id DESC`
+            `SELECT p.*,
+                    COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+             FROM patients p
+             ORDER BY p.id DESC`
         );
         res.json(patients);
     } catch (err) {
@@ -81,23 +83,29 @@ router.get('/search', async (req, res) => {
         if (!q) {
             if (showAll) {
                 const allPatients = await db.all(
-                    `SELECT * FROM patients
-                     ORDER BY id DESC`
+                    `SELECT p.*,
+                            COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+                     FROM patients p
+                     ORDER BY p.id DESC`
                 );
                 return res.json(allPatients);
             }
             // Return latest 25 registered patients for recent list
             const recent = await db.all(
-                `SELECT * FROM patients
-                 ORDER BY id DESC`
-                );
+                `SELECT p.*,
+                        COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+                 FROM patients p
+                 ORDER BY p.id DESC`
+            );
             return res.json(recent.slice(0, 25));
         }
 
         const patients = await db.all(
-            `SELECT * FROM patients
-             WHERE patient_id LIKE ? OR name LIKE ? OR phone LIKE ?
-             ORDER BY id DESC
+            `SELECT p.*,
+                    COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+             FROM patients p
+             WHERE p.patient_id LIKE ? OR p.name LIKE ? OR p.phone LIKE ?
+             ORDER BY p.id DESC
              LIMIT 50`,
             [`%${q}%`, `%${q}%`, `%${q}%`]
         );
@@ -128,7 +136,9 @@ router.get('/:id', async (req, res) => {
             [patient.id]
         );
 
-        res.json({ ...patient, prescriptions });
+        const lastVisitDate = prescriptions.length > 0 ? prescriptions[0].created_at : patient.created_at;
+
+        res.json({ ...patient, last_visit_date: lastVisitDate, prescriptions });
     } catch (err) {
         console.error('Error fetching patient:', err);
         res.status(500).json({ error: 'Failed to fetch patient.' });

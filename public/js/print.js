@@ -59,6 +59,18 @@ function renderPrescription(patient, rxData) {
     const dayStr = now.toLocaleDateString('en-US', { weekday: 'long' });
     document.getElementById('pVisitDate').textContent = `${visitDateStr} (${dayStr})`;
 
+    // Last Visit Date
+    let lastVisitDisplay = 'First Visit';
+    if (rxData && rxData.previous_visit_date) {
+        const lvd = new Date(rxData.previous_visit_date);
+        lastVisitDisplay = lvd.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } else if (!rxData && patient.prescriptions && patient.prescriptions.length > 0) {
+        const lvd = new Date(patient.prescriptions[0].created_at);
+        lastVisitDisplay = lvd.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    const pLastVisitEl = document.getElementById('pLastVisitDate');
+    if (pLastVisitEl) pLastVisitEl.textContent = lastVisitDisplay;
+
     // Patient ID
     document.getElementById('pUniqueId').textContent = patient.patient_id;
 

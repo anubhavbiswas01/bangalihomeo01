@@ -42,6 +42,17 @@ function getAvatarStyle(name) {
     return `background: ${grad}; color: white;`;
 }
 
+function formatVisitDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+        return dateStr;
+    }
+}
+
 // ===== DOM References =====
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
@@ -163,6 +174,7 @@ async function doSearch(forceAll = false) {
                                 ${p.age ? `<span class="badge-pill badge-age">🎂 ${p.age} Yrs</span>` : ''}
                                 ${p.gender ? `<span class="badge-pill badge-gender">⚧ ${p.gender}</span>` : ''}
                                 ${p.phone ? `<span class="badge-pill badge-phone">📞 ${p.phone}</span>` : ''}
+                                <span class="badge-pill badge-date">📅 Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
                             </div>
                         </div>
                     </div>
@@ -245,6 +257,9 @@ async function loadPatient(patientId) {
         document.getElementById('detailGender').textContent = data.gender || '—';
         document.getElementById('detailPhone').textContent = data.phone || '—';
         document.getElementById('detailAddress').textContent = data.address || '—';
+        const lastVisit = data.last_visit_date || (data.prescriptions && data.prescriptions[0] ? data.prescriptions[0].created_at : data.created_at);
+        const detailLastVisitEl = document.getElementById('detailLastVisit');
+        if (detailLastVisitEl) detailLastVisitEl.textContent = formatVisitDate(lastVisit);
 
         // History
         const rxHistory = document.getElementById('rxHistory');
