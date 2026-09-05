@@ -6,7 +6,40 @@ const os = require('os');
 const isVercel = process.env.VERCEL === '1';
 const BUNDLED_DB_PATH = path.join(__dirname, 'clinic.db');
 const DB_PATH = isVercel ? path.join(os.tmpdir(), 'clinic.db') : BUNDLED_DB_PATH;
-const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
+
+const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS patients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    age INTEGER,
+    gender TEXT,
+    phone TEXT,
+    address TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS prescriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rx_id TEXT UNIQUE NOT NULL,
+    patient_id INTEGER NOT NULL,
+    complaints TEXT,
+    diagnosis TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id)
+);
+
+CREATE TABLE IF NOT EXISTS prescription_medicines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prescription_id INTEGER NOT NULL,
+    medicine_name TEXT NOT NULL,
+    dosage TEXT,
+    frequency TEXT,
+    duration TEXT,
+    FOREIGN KEY (prescription_id) REFERENCES prescriptions(id)
+);
+`;
 
 let db = null;
 let inTransaction = false;
@@ -14,6 +47,7 @@ let inTransaction = false;
 // Save database to file
 function save() {
     try {
+        if (!db) return;
         const data = db.export();
         const buffer = Buffer.from(data);
         fs.writeFileSync(DB_PATH, buffer);
@@ -24,7 +58,19 @@ function save() {
 
 // Initialize database
 async function init() {
-    const SQL = await initSqlJs();
+    if (db) return db;
+
+    let wasmBinary = null;
+    try {
+        const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
+        if (fs.existsSync(wasmPath)) {
+            wasmBinary = fs.readFileSync(wasmPath);
+        }
+    } catch (e) {
+        console.warn('Could not load wasm via require.resolve:', e);
+    }
+
+    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : {});
 
     // In Vercel, copy bundled DB to /tmp if not yet created
     if (isVercel && !fs.existsSync(DB_PATH) && fs.existsSync(BUNDLED_DB_PATH)) {
@@ -37,18 +83,22 @@ async function init() {
 
     // Load existing database or create a new one
     if (fs.existsSync(DB_PATH)) {
-        const fileBuffer = fs.readFileSync(DB_PATH);
-        db = new SQL.Database(fileBuffer);
+        try {
+            const fileBuffer = fs.readFileSync(DB_PATH);
+            db = new SQL.Database(fileBuffer);
+        } catch (e) {
+            console.error('Failed to read existing DB, creating fresh:', e);
+            db = new SQL.Database();
+        }
     } else {
         db = new SQL.Database();
     }
 
     // Enable foreign keys
-    db.run('PRAGMA foreign_keys = ON');
+    try { db.run('PRAGMA foreign_keys = ON'); } catch (_) {}
 
-    // Run schema
-    const schema = fs.readFileSync(SCHEMA_PATH, 'utf-8');
-    db.run(schema);
+    // Run embedded schema
+    db.run(SCHEMA_SQL);
 
     // Auto-migrate: ensure complaints column exists in prescriptions table
     try {

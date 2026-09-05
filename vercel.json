@@ -3,7 +3,14 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "node_modules/sql.js/dist/sql-wasm.wasm",
+          "db/**",
+          "public/**"
+        ]
+      }
     }
   ],
   "routes": [

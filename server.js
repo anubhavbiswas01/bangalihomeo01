@@ -9,21 +9,26 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
-app.use('/api/patients', require('./routes/patients'));
-app.use('/api/prescriptions', require('./routes/prescriptions'));
-
-// Ensure DB is initialized before requests (especially on serverless Vercel)
+// Ensure DB is initialized before API requests (especially on serverless Vercel)
 let dbReady = false;
 let dbInitPromise = null;
 app.use(async (req, res, next) => {
     if (!dbReady) {
-        if (!dbInitPromise) dbInitPromise = db.init();
-        await dbInitPromise;
-        dbReady = true;
+        try {
+            if (!dbInitPromise) dbInitPromise = db.init();
+            await dbInitPromise;
+            dbReady = true;
+        } catch (err) {
+            console.error('Database initialization error:', err);
+            return res.status(500).json({ error: 'Database initialization failed: ' + err.message });
+        }
     }
     next();
 });
+
+// API Routes
+app.use('/api/patients', require('./routes/patients'));
+app.use('/api/prescriptions', require('./routes/prescriptions'));
 
 // Fallback — serve index.html
 app.get('*', (req, res) => {
