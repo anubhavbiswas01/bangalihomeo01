@@ -61,6 +61,7 @@ const editPatientModal = document.getElementById('editPatientModal');
 const editPatientForm = document.getElementById('editPatientForm');
 const cancelEditPatientBtn = document.getElementById('cancelEditPatientBtn');
 const cancelEditPatientBtn2 = document.getElementById('cancelEditPatientBtn2');
+const deletePatientBtn = document.getElementById('deletePatientBtn');
 
 let currentPatient = null;
 let searchTimeout = null;
@@ -142,6 +143,9 @@ async function doSearch() {
                     </button>
                     <button class="btn btn-edit-quick" onclick="event.stopPropagation(); openEditModal('${p.patient_id}');" title="Edit Patient Details">
                         ✏️ Edit
+                    </button>
+                    <button class="btn btn-delete-quick" onclick="event.stopPropagation(); deletePatient('${p.patient_id}', '${(p.name || '').replace(/'/g, "\\'")}');" title="Delete Patient Record">
+                        🗑️ Delete
                     </button>
                 </div>
             </div>
@@ -337,6 +341,35 @@ if (editPatientForm) {
             await doSearch();
         } catch (err) {
             showToast(err.message, true);
+        }
+    });
+}
+
+// ===== Delete Patient =====
+async function deletePatient(patientId, patientName) {
+    const confirmDelete = confirm(`Are you sure you want to delete patient:\n\n${patientName} (${patientId})?\n\nThis will permanently remove their records.`);
+    if (!confirmDelete) return;
+
+    try {
+        await api(`/api/patients/${patientId}`, { method: 'DELETE' });
+        showToast(`✓ Patient ${patientId} (${patientName}) deleted.`);
+
+        if (currentPatient && (currentPatient.patient_id === patientId || currentPatient.id === patientId)) {
+            patientDetail.classList.add('hidden');
+            currentPatient = null;
+        }
+
+        loadStats();
+        await doSearch();
+    } catch (err) {
+        showToast(err.message, true);
+    }
+}
+
+if (deletePatientBtn) {
+    deletePatientBtn.addEventListener('click', () => {
+        if (currentPatient) {
+            deletePatient(currentPatient.patient_id, currentPatient.name);
         }
     });
 }

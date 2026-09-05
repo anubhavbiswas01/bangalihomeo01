@@ -154,5 +154,34 @@ router.put('/:id', (req, res) => {
     }
 });
 
+// ── DELETE /api/patients/:id — Delete patient and related records ──
+router.delete('/:id', (req, res) => {
+    try {
+        const patient = db.get(
+            'SELECT * FROM patients WHERE id = ? OR patient_id = ?',
+            [req.params.id, req.params.id]
+        );
+
+        if (!patient) {
+            return res.status(404).json({ error: 'Patient not found.' });
+        }
+
+        db.transaction(() => {
+            const rxList = db.all('SELECT id FROM prescriptions WHERE patient_id = ?', [patient.id]);
+            for (const rx of rxList) {
+                db.run('DELETE FROM medicines WHERE prescription_id = ?', [rx.id]);
+            }
+            db.run('DELETE FROM prescriptions WHERE patient_id = ?', [patient.id]);
+            db.run('DELETE FROM patients WHERE id = ?', [patient.id]);
+        });
+
+        res.json({ success: true, message: `Patient ${patient.patient_id} deleted successfully.` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete patient.' });
+    }
+});
+
 module.exports = router;
+
 

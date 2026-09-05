@@ -1953,6 +1953,41 @@ body {
     border-color: #0284c7;
 }
 
+.btn-delete-quick {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1.5px solid #fecaca;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.825rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-delete-quick:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
+.btn-danger-soft {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1.5px solid #fecaca;
+    font-weight: 700;
+}
+
+.btn-danger-soft:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
 .modal-header-vibrant.edit-header {
     background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%) !important;
 }
