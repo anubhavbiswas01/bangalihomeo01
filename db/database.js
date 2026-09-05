@@ -1,165 +1,107 @@
-const initSqlJs = require('sql.js');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
+const { createClient } = require('@libsql/client');
 
-const isVercel = process.env.VERCEL === '1';
-const BUNDLED_DB_PATH = path.join(__dirname, 'clinic.db');
-const DB_PATH = isVercel ? path.join(os.tmpdir(), 'clinic.db') : BUNDLED_DB_PATH;
+const TURSO_URL = process.env.TURSO_DATABASE_URL || 'libsql://bengalihomeo-anubhavbiswas01.aws-ap-south-1.turso.io';
+const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg2MTExODYsImlkIjoiMDFhMDcxODgtMGYwMS03Y2VhLWFmNDctZjkwMDM4OWU2YWVmIiwia2lkIjoiTkcyX05Uci01MVExRHlNTHN5TXN5R1duclJDMHhsOGZJcnVxMU91bWtnTSIsInJpZCI6IjY1MTcwZTAzLTVkMDEtNGJjZC1hN2M3LTI2OWNiNWI1YWFkOCJ9.fRC1oEGr1rY06ktzEJDjAQnU_gLiVVUwTxtOGSIxNVgTlFPcW_u5fzd2m1_VA5gGCB6K7ZNwpEy81kPHFs2qAg';
 
-const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS patients (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    patient_id TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    age INTEGER,
-    gender TEXT,
-    phone TEXT,
-    address TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+let client = null;
 
-CREATE TABLE IF NOT EXISTS prescriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    rx_id TEXT UNIQUE NOT NULL,
-    patient_id INTEGER NOT NULL,
-    complaints TEXT,
-    diagnosis TEXT,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES patients(id)
-);
-
-CREATE TABLE IF NOT EXISTS prescription_medicines (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    prescription_id INTEGER NOT NULL,
-    medicine_name TEXT NOT NULL,
-    dosage TEXT,
-    frequency TEXT,
-    duration TEXT,
-    FOREIGN KEY (prescription_id) REFERENCES prescriptions(id)
-);
-`;
-
-let db = null;
-let inTransaction = false;
-
-// Save database to file
-function save() {
-    try {
-        if (!db) return;
-        const data = db.export();
-        const buffer = Buffer.from(data);
-        fs.writeFileSync(DB_PATH, buffer);
-    } catch (e) {
-        console.error('Failed to save DB to disk:', e);
-    }
-}
-
-// Initialize database
 async function init() {
-    if (db) return db;
+    if (client) return client;
 
-    let wasmBinary = null;
-    try {
-        const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
-        if (fs.existsSync(wasmPath)) {
-            wasmBinary = fs.readFileSync(wasmPath);
-        }
-    } catch (e) {
-        console.warn('Could not load wasm via require.resolve:', e);
-    }
+    client = createClient({
+        url: TURSO_URL,
+        authToken: TURSO_TOKEN
+    });
 
-    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : {});
+    // Ensure schema exists in cloud database
+    await client.execute(`
+        CREATE TABLE IF NOT EXISTS patients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            age INTEGER,
+            gender TEXT,
+            phone TEXT,
+            address TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
 
-    // In Vercel, copy bundled DB to /tmp if not yet created
-    if (isVercel && !fs.existsSync(DB_PATH) && fs.existsSync(BUNDLED_DB_PATH)) {
-        try {
-            fs.copyFileSync(BUNDLED_DB_PATH, DB_PATH);
-        } catch (e) {
-            console.error('Failed to copy bundled db to tmp:', e);
-        }
-    }
+    await client.execute(`
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rx_id TEXT UNIQUE NOT NULL,
+            patient_id INTEGER NOT NULL,
+            complaints TEXT,
+            diagnosis TEXT,
+            notes TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id)
+        );
+    `);
 
-    // Load existing database or create a new one
-    if (fs.existsSync(DB_PATH)) {
-        try {
-            const fileBuffer = fs.readFileSync(DB_PATH);
-            db = new SQL.Database(fileBuffer);
-        } catch (e) {
-            console.error('Failed to read existing DB, creating fresh:', e);
-            db = new SQL.Database();
-        }
-    } else {
-        db = new SQL.Database();
-    }
+    await client.execute(`
+        CREATE TABLE IF NOT EXISTS prescription_medicines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prescription_id INTEGER NOT NULL,
+            medicine_name TEXT NOT NULL,
+            dosage TEXT,
+            frequency TEXT,
+            duration TEXT,
+            FOREIGN KEY (prescription_id) REFERENCES prescriptions(id)
+        );
+    `);
 
-    // Enable foreign keys
-    try { db.run('PRAGMA foreign_keys = ON'); } catch (_) {}
-
-    // Run embedded schema
-    db.run(SCHEMA_SQL);
-
-    // Auto-migrate: ensure complaints column exists in prescriptions table
-    try {
-        db.run('ALTER TABLE prescriptions ADD COLUMN complaints TEXT');
-    } catch (e) {
-        // column already exists
-    }
-
-    save();
-
-    return db;
+    return client;
 }
 
-// Helper: run a query that modifies data (INSERT, UPDATE, DELETE)
-function run(sql, params = []) {
-    db.run(sql, params);
-
-    // Get last insert rowid
-    const result = db.exec('SELECT last_insert_rowid() AS id');
-    const lastInsertRowid = result[0] ? result[0].values[0][0] : 0;
-
-    // Only save to disk if not inside a transaction (transaction saves at the end)
-    if (!inTransaction) {
-        save();
-    }
-
-    return { lastInsertRowid };
+async function run(sql, params = []) {
+    if (!client) await init();
+    const res = await client.execute({ sql, args: params });
+    return {
+        lastInsertRowid: res.lastInsertRowid !== undefined ? Number(res.lastInsertRowid) : 0,
+        rowsAffected: res.rowsAffected
+    };
 }
 
-// Helper: get all rows
-function all(sql, params = []) {
-    const stmt = db.prepare(sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) {
-        rows.push(stmt.getAsObject());
-    }
-    stmt.free();
-    return rows;
+async function all(sql, params = []) {
+    if (!client) await init();
+    const res = await client.execute({ sql, args: params });
+    return res.rows;
 }
 
-// Helper: get one row
-function get(sql, params = []) {
-    const rows = all(sql, params);
+async function get(sql, params = []) {
+    const rows = await all(sql, params);
     return rows.length > 0 ? rows[0] : null;
 }
 
-// Helper: run multiple statements in a transaction
-function transaction(fn) {
-    inTransaction = true;
-    db.run('BEGIN TRANSACTION');
+async function transaction(fn) {
+    if (!client) await init();
+    const tx = await client.transaction();
     try {
-        const result = fn();
-        db.run('COMMIT');
-        save();
+        const txWrapper = {
+            run: async (sql, params = []) => {
+                const res = await tx.execute({ sql, args: params });
+                return {
+                    lastInsertRowid: res.lastInsertRowid !== undefined ? Number(res.lastInsertRowid) : 0,
+                    rowsAffected: res.rowsAffected
+                };
+            },
+            all: async (sql, params = []) => {
+                const res = await tx.execute({ sql, args: params });
+                return res.rows;
+            },
+            get: async (sql, params = []) => {
+                const res = await tx.execute({ sql, args: params });
+                return res.rows.length > 0 ? res.rows[0] : null;
+            }
+        };
+        const result = await fn(txWrapper);
+        await tx.commit();
         return result;
     } catch (err) {
-        try { db.run('ROLLBACK'); } catch (_) { /* ignore if nothing to rollback */ }
+        try { await tx.rollback(); } catch (_) {}
         throw err;
-    } finally {
-        inTransaction = false;
     }
 }
 

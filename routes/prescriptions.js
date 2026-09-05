@@ -3,14 +3,14 @@ const router = express.Router();
 const db = require('../db/database');
 
 // ── Generate next Rx ID (RX-00001, RX-00002, …) ──
-function nextRxId() {
-    const row = db.get('SELECT MAX(id) AS maxId FROM prescriptions');
+async function nextRxId() {
+    const row = await db.get('SELECT MAX(id) AS maxId FROM prescriptions');
     const num = ((row && row.maxId) || 0) + 1;
     return 'RX-' + String(num).padStart(5, '0');
 }
 
 // ── POST /api/prescriptions — Create a new prescription ──
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { patient_id, complaints, diagnosis, notes, medicines } = req.body;
 
@@ -19,10 +19,10 @@ router.post('/', (req, res) => {
         }
 
         const medList = Array.isArray(medicines) ? medicines : [];
-        const rxId = nextRxId();
+        const rxId = await nextRxId();
 
-        const prescriptionId = db.transaction(() => {
-            const result = db.run(
+        const prescriptionId = await db.transaction(async (tx) => {
+            const result = await tx.run(
                 `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes)
                  VALUES (?, ?, ?, ?, ?)`,
                 [rxId, patient_id, complaints || '', diagnosis || '', notes || '']
@@ -31,7 +31,7 @@ router.post('/', (req, res) => {
 
             for (const med of medList) {
                 if (med.medicine_name && med.medicine_name.trim()) {
-                    db.run(
+                    await tx.run(
                         `INSERT INTO prescription_medicines (prescription_id, medicine_name, dosage, frequency, duration)
                          VALUES (?, ?, ?, ?, ?)`,
                         [pId, med.medicine_name.trim(), med.dosage || '', med.frequency || '', med.duration || '']
@@ -51,15 +51,15 @@ router.post('/', (req, res) => {
             notes
         });
     } catch (err) {
-        console.error(err);
+        console.error('Error creating prescription:', err);
         res.status(500).json({ error: 'Failed to create prescription.' });
     }
 });
 
 // ── GET /api/prescriptions/:rxId — Get full prescription for print ──
-router.get('/:rxId', (req, res) => {
+router.get('/:rxId', async (req, res) => {
     try {
-        const prescription = db.get(
+        const prescription = await db.get(
             `SELECT p.*, pt.patient_id AS patient_code, pt.name, pt.age, pt.gender, pt.phone, pt.address
              FROM prescriptions p
              JOIN patients pt ON pt.id = p.patient_id
@@ -71,14 +71,14 @@ router.get('/:rxId', (req, res) => {
             return res.status(404).json({ error: 'Prescription not found.' });
         }
 
-        const medicines = db.all(
+        const medicines = await db.all(
             'SELECT * FROM prescription_medicines WHERE prescription_id = ?',
             [prescription.id]
         );
 
         res.json({ ...prescription, medicines });
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching prescription:', err);
         res.status(500).json({ error: 'Failed to fetch prescription.' });
     }
 });

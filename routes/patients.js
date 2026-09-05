@@ -3,14 +3,14 @@ const router = express.Router();
 const db = require('../db/database');
 
 // ── Generate next patient ID (PAT-00001, PAT-00002, …) ──
-function nextPatientId() {
-    const row = db.get('SELECT MAX(id) AS maxId FROM patients');
+async function nextPatientId() {
+    const row = await db.get('SELECT MAX(id) AS maxId FROM patients');
     const num = ((row && row.maxId) || 0) + 1;
     return 'PAT-' + String(num).padStart(5, '0');
 }
 
 // ── POST /api/patients — Create a new patient ──
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { name, age, gender, phone, address } = req.body;
 
@@ -18,12 +18,12 @@ router.post('/', (req, res) => {
             return res.status(400).json({ error: 'Patient name is required.' });
         }
 
-        const patientId = nextPatientId();
+        const patientId = await nextPatientId();
 
-        const result = db.run(
+        const result = await db.run(
             `INSERT INTO patients (patient_id, name, age, gender, phone, address)
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [patientId, name.trim(), age || null, gender || null, phone || null, address || null]
+            [patientId, name.trim(), age ? parseInt(age, 10) : null, gender || null, phone || null, address || null]
         );
 
         res.status(201).json({
@@ -33,70 +33,68 @@ router.post('/', (req, res) => {
             age, gender, phone, address
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to create patient.' });
+        console.error('Error creating patient:', err);
+        res.status(500).json({ error: 'Failed to create patient: ' + err.message });
     }
 });
 
 // ── GET /api/patients — Return all registered patients ──
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const patients = db.all(
+        const patients = await db.all(
             `SELECT * FROM patients
              ORDER BY id DESC`
         );
         res.json(patients);
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching patients:', err);
         res.status(500).json({ error: 'Failed to fetch all patients.' });
     }
 });
 
 // ── GET /api/patients/stats — Summary counts for dashboard ──
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
     try {
-        const pCount = db.get('SELECT COUNT(*) AS total FROM patients') || { total: 0 };
-        const rxCount = db.get('SELECT COUNT(*) AS total FROM prescriptions') || { total: 0 };
-        const todayCount = db.get(
+        const pCount = (await db.get('SELECT COUNT(*) AS total FROM patients')) || { total: 0 };
+        const rxCount = (await db.get('SELECT COUNT(*) AS total FROM prescriptions')) || { total: 0 };
+        const todayCount = (await db.get(
             `SELECT COUNT(*) AS total FROM patients WHERE date(created_at) = date('now')`
-        ) || { total: 0 };
+        )) || { total: 0 };
 
         res.json({
-            totalPatients: pCount.total || 0,
-            totalPrescriptions: rxCount.total || 0,
-            todayPatients: todayCount.total || 0
+            totalPatients: Number(pCount.total || 0),
+            totalPrescriptions: Number(rxCount.total || 0),
+            todayPatients: Number(todayCount.total || 0)
         });
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching stats:', err);
         res.status(500).json({ error: 'Failed to fetch stats.' });
     }
 });
 
 // ── GET /api/patients/search?q= — Search by name, phone or patient ID (or return recent) ──
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
     try {
         const q = (req.query.q || '').trim();
-
         const showAll = req.query.all === 'true';
 
         if (!q) {
             if (showAll) {
-                const allPatients = db.all(
+                const allPatients = await db.all(
                     `SELECT * FROM patients
                      ORDER BY id DESC`
                 );
                 return res.json(allPatients);
             }
             // Return latest 25 registered patients for recent list
-            const recent = db.all(
+            const recent = await db.all(
                 `SELECT * FROM patients
-                 ORDER BY id DESC
-                 LIMIT 25`
-            );
-            return res.json(recent);
+                 ORDER BY id DESC`
+                );
+            return res.json(recent.slice(0, 25));
         }
 
-        const patients = db.all(
+        const patients = await db.all(
             `SELECT * FROM patients
              WHERE patient_id LIKE ? OR name LIKE ? OR phone LIKE ?
              ORDER BY id DESC
@@ -106,15 +104,15 @@ router.get('/search', (req, res) => {
 
         res.json(patients);
     } catch (err) {
-        console.error(err);
+        console.error('Error in search:', err);
         res.status(500).json({ error: 'Search failed.' });
     }
 });
 
 // ── GET /api/patients/:id — Patient details + prescription history ──
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
-        const patient = db.get(
+        const patient = await db.get(
             'SELECT * FROM patients WHERE id = ? OR patient_id = ?',
             [req.params.id, req.params.id]
         );
@@ -123,7 +121,7 @@ router.get('/:id', (req, res) => {
             return res.status(404).json({ error: 'Patient not found.' });
         }
 
-        const prescriptions = db.all(
+        const prescriptions = await db.all(
             `SELECT * FROM prescriptions
              WHERE patient_id = ?
              ORDER BY created_at DESC`,
@@ -132,13 +130,13 @@ router.get('/:id', (req, res) => {
 
         res.json({ ...patient, prescriptions });
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching patient:', err);
         res.status(500).json({ error: 'Failed to fetch patient.' });
     }
 });
 
 // ── PUT /api/patients/:id — Update existing patient details ──
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const { name, age, gender, phone, address } = req.body;
 
@@ -146,7 +144,7 @@ router.put('/:id', (req, res) => {
             return res.status(400).json({ error: 'Patient name is required.' });
         }
 
-        const patient = db.get(
+        const patient = await db.get(
             'SELECT * FROM patients WHERE id = ? OR patient_id = ?',
             [req.params.id, req.params.id]
         );
@@ -155,7 +153,7 @@ router.put('/:id', (req, res) => {
             return res.status(404).json({ error: 'Patient not found.' });
         }
 
-        db.run(
+        await db.run(
             `UPDATE patients
              SET name = ?, age = ?, gender = ?, phone = ?, address = ?
              WHERE id = ?`,
@@ -169,18 +167,18 @@ router.put('/:id', (req, res) => {
             ]
         );
 
-        const updated = db.get('SELECT * FROM patients WHERE id = ?', [patient.id]);
+        const updated = await db.get('SELECT * FROM patients WHERE id = ?', [patient.id]);
         res.json(updated);
     } catch (err) {
-        console.error(err);
+        console.error('Error updating patient:', err);
         res.status(500).json({ error: 'Failed to update patient details.' });
     }
 });
 
 // ── DELETE /api/patients/:id — Delete patient and related records ──
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
-        const patient = db.get(
+        const patient = await db.get(
             'SELECT * FROM patients WHERE id = ? OR patient_id = ?',
             [req.params.id, req.params.id]
         );
@@ -189,22 +187,20 @@ router.delete('/:id', (req, res) => {
             return res.status(404).json({ error: 'Patient not found.' });
         }
 
-        db.transaction(() => {
-            const rxList = db.all('SELECT id FROM prescriptions WHERE patient_id = ?', [patient.id]);
+        await db.transaction(async (tx) => {
+            const rxList = await tx.all('SELECT id FROM prescriptions WHERE patient_id = ?', [patient.id]);
             for (const rx of rxList) {
-                db.run('DELETE FROM prescription_medicines WHERE prescription_id = ?', [rx.id]);
+                await tx.run('DELETE FROM prescription_medicines WHERE prescription_id = ?', [rx.id]);
             }
-            db.run('DELETE FROM prescriptions WHERE patient_id = ?', [patient.id]);
-            db.run('DELETE FROM patients WHERE id = ?', [patient.id]);
+            await tx.run('DELETE FROM prescriptions WHERE patient_id = ?', [patient.id]);
+            await tx.run('DELETE FROM patients WHERE id = ?', [patient.id]);
         });
 
         res.json({ success: true, message: `Patient ${patient.patient_id} deleted successfully.` });
     } catch (err) {
-        console.error(err);
+        console.error('Error deleting patient:', err);
         res.status(500).json({ error: 'Failed to delete patient.' });
     }
 });
 
 module.exports = router;
-
-
