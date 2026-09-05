@@ -1,8 +1,11 @@
 const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
-const DB_PATH = path.join(__dirname, 'clinic.db');
+const isVercel = process.env.VERCEL === '1';
+const BUNDLED_DB_PATH = path.join(__dirname, 'clinic.db');
+const DB_PATH = isVercel ? path.join(os.tmpdir(), 'clinic.db') : BUNDLED_DB_PATH;
 const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
 
 let db = null;
@@ -10,14 +13,27 @@ let inTransaction = false;
 
 // Save database to file
 function save() {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(DB_PATH, buffer);
+    try {
+        const data = db.export();
+        const buffer = Buffer.from(data);
+        fs.writeFileSync(DB_PATH, buffer);
+    } catch (e) {
+        console.error('Failed to save DB to disk:', e);
+    }
 }
 
 // Initialize database
 async function init() {
     const SQL = await initSqlJs();
+
+    // In Vercel, copy bundled DB to /tmp if not yet created
+    if (isVercel && !fs.existsSync(DB_PATH) && fs.existsSync(BUNDLED_DB_PATH)) {
+        try {
+            fs.copyFileSync(BUNDLED_DB_PATH, DB_PATH);
+        } catch (e) {
+            console.error('Failed to copy bundled db to tmp:', e);
+        }
+    }
 
     // Load existing database or create a new one
     if (fs.existsSync(DB_PATH)) {
