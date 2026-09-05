@@ -169,7 +169,7 @@ router.delete('/:id', (req, res) => {
         db.transaction(() => {
             const rxList = db.all('SELECT id FROM prescriptions WHERE patient_id = ?', [patient.id]);
             for (const rx of rxList) {
-                db.run('DELETE FROM medicines WHERE prescription_id = ?', [rx.id]);
+                db.run('DELETE FROM prescription_medicines WHERE prescription_id = ?', [rx.id]);
             }
             db.run('DELETE FROM prescriptions WHERE patient_id = ?', [patient.id]);
             db.run('DELETE FROM patients WHERE id = ?', [patient.id]);
