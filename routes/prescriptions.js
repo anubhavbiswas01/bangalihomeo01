@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
+const gsheet = require('../db/gsheet');
 
 // ── Generate next Rx ID (RX-00001, RX-00002, …) ──
 async function nextRxId() {
@@ -19,6 +20,17 @@ router.post('/', async (req, res) => {
         }
 
         const medList = Array.isArray(medicines) ? medicines : [];
+
+        if (gsheet.isConfigured()) {
+            const newRx = await gsheet.createPrescription({
+                patient_id,
+                complaints,
+                diagnosis,
+                notes,
+                medicines: medList
+            });
+            return res.status(201).json(newRx);
+        }
         const rxId = await nextRxId();
 
         const prescriptionId = await db.transaction(async (tx) => {
@@ -59,6 +71,14 @@ router.post('/', async (req, res) => {
 // ── GET /api/prescriptions/:rxId — Get full prescription for print ──
 router.get('/:rxId', async (req, res) => {
     try {
+        if (gsheet.isConfigured()) {
+            const rx = await gsheet.getPrescriptionById(req.params.rxId);
+            if (!rx || rx.error) {
+                return res.status(404).json({ error: 'Prescription not found.' });
+            }
+            return res.json(rx);
+        }
+
         const prescription = await db.get(
             `SELECT p.*, pt.patient_id AS patient_code, pt.name, pt.age, pt.gender, pt.phone, pt.address,
                     pt.created_at AS patient_created_at,
