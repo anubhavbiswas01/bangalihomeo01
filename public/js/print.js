@@ -60,13 +60,21 @@ function renderPrescription(patient, rxData) {
     document.getElementById('pVisitDate').textContent = `${visitDateStr} (${dayStr})`;
 
     // Last Visit Date
-    let lastVisitDisplay = 'First Visit';
+    let lastVisitDate = null;
     if (rxData && rxData.previous_visit_date) {
-        const lvd = new Date(rxData.previous_visit_date);
-        lastVisitDisplay = lvd.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        lastVisitDate = rxData.previous_visit_date;
     } else if (!rxData && patient.prescriptions && patient.prescriptions.length > 0) {
-        const lvd = new Date(patient.prescriptions[0].created_at);
-        lastVisitDisplay = lvd.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        lastVisitDate = patient.prescriptions[0].created_at;
+    } else {
+        lastVisitDate = patient.last_visit_date || patient.created_at;
+    }
+
+    let lastVisitDisplay = '--';
+    if (lastVisitDate) {
+        const lvd = new Date(lastVisitDate);
+        if (!isNaN(lvd.getTime())) {
+            lastVisitDisplay = lvd.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
     }
     const pLastVisitEl = document.getElementById('pLastVisitDate');
     if (pLastVisitEl) pLastVisitEl.textContent = lastVisitDisplay;
