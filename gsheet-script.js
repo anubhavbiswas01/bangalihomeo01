@@ -22,8 +22,22 @@ function setupSheets(ss) {
   var pSheet = ss.getSheetByName('Patients');
   if (!pSheet) {
     pSheet = ss.insertSheet('Patients');
-    pSheet.appendRow(['id', 'patient_id', 'name', 'age', 'gender', 'phone', 'address', 'created_at']);
-    pSheet.getRange('A1:H1').setFontWeight('bold').setBackground('#e0f2fe');
+    pSheet.appendRow(['id', 'patient_id', 'name', 'age', 'gender', 'phone', 'address', 'created_at', 'last_visit_date']);
+    pSheet.getRange('A1:I1').setFontWeight('bold').setBackground('#e0f2fe');
+  } else {
+    // Ensure Column I has last_visit_date
+    var colCount = pSheet.getLastColumn();
+    var headers = pSheet.getRange(1, 1, 1, Math.max(1, colCount)).getValues()[0];
+    if (headers.indexOf('last_visit_date') === -1) {
+      pSheet.getRange(1, 9).setValue('last_visit_date').setFontWeight('bold').setBackground('#fef3c7');
+      var lastRow = pSheet.getLastRow();
+      if (lastRow > 1) {
+        var createdCol = pSheet.getRange(2, 8, lastRow - 1, 1).getValues();
+        for (var r = 0; r < createdCol.length; r++) {
+          pSheet.getRange(r + 2, 9).setValue(createdCol[r][0] || new Date().toISOString());
+        }
+      }
+    }
   }
 
   // 2. Prescriptions Sheet
@@ -288,6 +302,7 @@ function doPost(e) {
         body.gender || '',
         body.phone || '',
         body.address || '',
+        nowIso,
         nowIso
       ]);
 
@@ -324,6 +339,7 @@ function doPost(e) {
       if (body.gender !== undefined) pSheet.getRange(rowIndex, 5).setValue(body.gender || '');
       if (body.phone !== undefined) pSheet.getRange(rowIndex, 6).setValue(body.phone || '');
       if (body.address !== undefined) pSheet.getRange(rowIndex, 7).setValue(body.address || '');
+      if (body.last_visit_date !== undefined) pSheet.getRange(rowIndex, 9).setValue(body.last_visit_date);
 
       return jsonResponse({ success: true, message: 'Patient updated' });
     }
@@ -387,6 +403,16 @@ function doPost(e) {
               med.duration || ''
             ]);
           }
+        }
+      }
+
+      // Update patient's last_visit_date in Patients sheet
+      var pSheet = sheets.pSheet;
+      var pData = pSheet.getDataRange().getValues();
+      for (var pr = 1; pr < pData.length; pr++) {
+        if (String(pData[pr][0]) === String(body.patient_id) || String(pData[pr][1]) === String(body.patient_id)) {
+          pSheet.getRange(pr + 1, 9).setValue(nowIso);
+          break;
         }
       }
 
