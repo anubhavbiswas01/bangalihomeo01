@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 
-let hardcodedUrl = ''; // Can be set here directly
+let hardcodedUrl = 'https://script.google.com/macros/s/AKfycbxwypco_TCcEFQUdGZzJJG1CoLRoCIlCAmEMKcChVGq1y91SErBL_1HnSIA5P6sR5mg/exec';
 
 function getUrl() {
     if (process.env.GSHEET_WEBAPP_URL && process.env.GSHEET_WEBAPP_URL.trim()) {
