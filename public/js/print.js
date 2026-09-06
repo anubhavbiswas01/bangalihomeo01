@@ -44,7 +44,7 @@ async function loadPrescription() {
 }
 
 function renderPrescription(patient, rxData) {
-    const now = new Date((rxData && rxData.created_at) || patient.created_at || Date.now());
+    const now = (rxData && rxData.created_at) ? new Date(rxData.created_at) : new Date();
 
     // Patient Fields
     document.getElementById('pName').textContent = (patient.name || '--').toUpperCase();
@@ -59,12 +59,17 @@ function renderPrescription(patient, rxData) {
     const dayStr = now.toLocaleDateString('en-US', { weekday: 'long' });
     document.getElementById('pVisitDate').textContent = `${visitDateStr} (${dayStr})`;
 
-    // Last Visit Date
+    // Last Visit Date: When the patient last came based on data
     let lastVisitDate = null;
     if (rxData && rxData.previous_visit_date) {
         lastVisitDate = rxData.previous_visit_date;
-    } else if (!rxData && patient.prescriptions && patient.prescriptions.length > 0) {
-        lastVisitDate = patient.prescriptions[0].created_at;
+    } else if (patient.prescriptions && patient.prescriptions.length > 0) {
+        if (rxData) {
+            const olderRxs = patient.prescriptions.filter(r => new Date(r.created_at) < new Date(rxData.created_at));
+            lastVisitDate = olderRxs.length > 0 ? olderRxs[0].created_at : (patient.last_visit_date || patient.created_at);
+        } else {
+            lastVisitDate = patient.prescriptions[0].created_at;
+        }
     } else {
         lastVisitDate = patient.last_visit_date || patient.created_at;
     }

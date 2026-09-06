@@ -21,9 +21,21 @@ router.post('/', async (req, res) => {
 
         const medList = Array.isArray(medicines) ? medicines : [];
 
+        let ptNumId = patient_id;
+        let ptCode = patient_id;
+        try {
+            const ptRow = await db.get('SELECT id, patient_id FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
+            if (ptRow) {
+                ptNumId = ptRow.id;
+                ptCode = ptRow.patient_id;
+            }
+        } catch (e) {
+            // Ignore if DB not reachable
+        }
+
         if (gsheet.isConfigured()) {
             const newRx = await gsheet.createPrescription({
-                patient_id,
+                patient_id: ptCode || patient_id,
                 complaints,
                 diagnosis,
                 notes,
@@ -37,7 +49,7 @@ router.post('/', async (req, res) => {
             const result = await tx.run(
                 `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes)
                  VALUES (?, ?, ?, ?, ?)`,
-                [rxId, patient_id, complaints || '', diagnosis || '', notes || '']
+                [rxId, ptNumId, complaints || '', diagnosis || '', notes || '']
             );
             const pId = result.lastInsertRowid;
 

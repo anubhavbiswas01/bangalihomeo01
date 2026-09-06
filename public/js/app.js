@@ -66,6 +66,7 @@ const patientModal = document.getElementById('patientModal');
 const cancelPatientBtn = document.getElementById('cancelPatientBtn');
 const cancelPatientBtn2 = document.getElementById('cancelPatientBtn2');
 const patientForm = document.getElementById('patientForm');
+const detailNewRxBtn = document.getElementById('detailNewRxBtn');
 const printBlankPadBtn = document.getElementById('printBlankPadBtn');
 const editPatientBtn = document.getElementById('editPatientBtn');
 const editPatientModal = document.getElementById('editPatientModal');
@@ -174,7 +175,7 @@ async function doSearch(forceAll = false) {
                                 ${p.age ? `<span class="badge-pill badge-age">🎂 ${p.age} Yrs</span>` : ''}
                                 ${p.gender ? `<span class="badge-pill badge-gender">⚧ ${p.gender}</span>` : ''}
                                 ${p.phone ? `<span class="badge-pill badge-phone">📞 ${p.phone}</span>` : ''}
-                                <span class="badge-pill badge-date">📅 Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
+                                <span class="badge-pill badge-date">📅 Last Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
                             </div>
                         </div>
                     </div>
@@ -189,6 +190,9 @@ async function doSearch(forceAll = false) {
                 ` : ''}
 
                 <div class="card-actions-bar">
+                    <button class="btn-rx-quick" onclick="event.stopPropagation(); window.location.href='/prescription.html?patientId=${p.patient_id}';" title="Write New Prescription for ${p.name}">
+                        📝 New Prescription
+                    </button>
                     <button class="btn btn-print-quick" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print Blank Pad">
                         🖨️ Print OPD Card
                     </button>
@@ -257,7 +261,9 @@ async function loadPatient(patientId) {
         document.getElementById('detailGender').textContent = data.gender || '—';
         document.getElementById('detailPhone').textContent = data.phone || '—';
         document.getElementById('detailAddress').textContent = data.address || '—';
-        const lastVisit = data.last_visit_date || (data.prescriptions && data.prescriptions[0] ? data.prescriptions[0].created_at : data.created_at);
+        const lastVisit = (data.prescriptions && data.prescriptions.length > 0 ? data.prescriptions[0].created_at : null)
+            || data.last_visit_date
+            || data.created_at;
         const detailLastVisitEl = document.getElementById('detailLastVisit');
         if (detailLastVisitEl) detailLastVisitEl.textContent = formatVisitDate(lastVisit);
 
@@ -281,7 +287,7 @@ async function loadPatient(patientId) {
         } else {
             rxHistory.innerHTML = `
                 <div class="empty-history-box">
-                    <p>No past prescriptions recorded yet for ${data.name}. Click "Print OPD Card" to generate a slip.</p>
+                    <p>No past prescriptions recorded yet for ${data.name}. Click "Write New Prescription" to create one or "Print OPD Card" to generate a blank slip.</p>
                 </div>`;
         }
 
@@ -293,6 +299,14 @@ async function loadPatient(patientId) {
 }
 
 // ===== Action Buttons =====
+if (detailNewRxBtn) {
+    detailNewRxBtn.addEventListener('click', () => {
+        if (currentPatient) {
+            window.location.href = `/prescription.html?patientId=${currentPatient.patient_id}`;
+        }
+    });
+}
+
 if (printBlankPadBtn) {
     printBlankPadBtn.addEventListener('click', () => {
         if (currentPatient) {

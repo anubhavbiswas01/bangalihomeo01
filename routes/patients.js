@@ -62,7 +62,7 @@ router.get('/', async (req, res) => {
 
         const patients = await db.all(
             `SELECT p.*,
-                    COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+                    COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id OR patient_id = p.patient_id), p.created_at) AS last_visit_date
              FROM patients p
              ORDER BY p.id DESC`
         );
@@ -113,7 +113,7 @@ router.get('/search', async (req, res) => {
             if (showAll) {
                 const allPatients = await db.all(
                     `SELECT p.*,
-                            COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+                            COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id OR patient_id = p.patient_id), p.created_at) AS last_visit_date
                      FROM patients p
                      ORDER BY p.id DESC`
                 );
@@ -122,7 +122,7 @@ router.get('/search', async (req, res) => {
             // Return latest 25 registered patients for recent list
             const recent = await db.all(
                 `SELECT p.*,
-                        COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+                        COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id OR patient_id = p.patient_id), p.created_at) AS last_visit_date
                  FROM patients p
                  ORDER BY p.id DESC`
             );
@@ -131,7 +131,7 @@ router.get('/search', async (req, res) => {
 
         const patients = await db.all(
             `SELECT p.*,
-                    COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id), p.created_at) AS last_visit_date
+                    COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id OR patient_id = p.patient_id), p.created_at) AS last_visit_date
              FROM patients p
              WHERE p.patient_id LIKE ? OR p.name LIKE ? OR p.phone LIKE ?
              ORDER BY p.id DESC
@@ -168,12 +168,14 @@ router.get('/:id', async (req, res) => {
 
         const prescriptions = await db.all(
             `SELECT * FROM prescriptions
-             WHERE patient_id = ?
+             WHERE patient_id = ? OR patient_id = ?
              ORDER BY created_at DESC`,
-            [patient.id]
+            [patient.id, patient.patient_id]
         );
 
-        const lastVisitDate = prescriptions.length > 0 ? prescriptions[0].created_at : patient.created_at;
+        const lastVisitDate = (prescriptions && prescriptions.length > 0 && prescriptions[0].created_at)
+            ? prescriptions[0].created_at
+            : (patient.last_visit_date || patient.created_at);
 
         res.json({ ...patient, last_visit_date: lastVisitDate, prescriptions });
     } catch (err) {
