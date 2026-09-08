@@ -10,10 +10,21 @@ function showToast(msg, isError = false) {
 }
 
 async function api(url, options = {}) {
+    const token = localStorage.getItem('clinic_auth_token');
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...(options.headers || {})
+    };
     const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options
+        ...options,
+        headers
     });
+    if (res.status === 401) {
+        localStorage.removeItem('clinic_auth_token');
+        showLockScreen('Session expired. Please enter Doctor PIN.');
+        throw new Error('Doctor authentication required');
+    }
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed');
     return data;
@@ -66,7 +77,6 @@ const patientModal = document.getElementById('patientModal');
 const cancelPatientBtn = document.getElementById('cancelPatientBtn');
 const cancelPatientBtn2 = document.getElementById('cancelPatientBtn2');
 const patientForm = document.getElementById('patientForm');
-const detailNewRxBtn = document.getElementById('detailNewRxBtn');
 const printBlankPadBtn = document.getElementById('printBlankPadBtn');
 const editPatientBtn = document.getElementById('editPatientBtn');
 const editPatientModal = document.getElementById('editPatientModal');
@@ -175,7 +185,7 @@ async function doSearch(forceAll = false) {
                                 ${p.age ? `<span class="badge-pill badge-age">🎂 ${p.age} Yrs</span>` : ''}
                                 ${p.gender ? `<span class="badge-pill badge-gender">⚧ ${p.gender}</span>` : ''}
                                 ${p.phone ? `<span class="badge-pill badge-phone">📞 ${p.phone}</span>` : ''}
-                                <span class="badge-pill badge-date">📅 Last Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
+                                <span class="badge-pill badge-date">📅 Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
                             </div>
                         </div>
                     </div>
@@ -190,9 +200,6 @@ async function doSearch(forceAll = false) {
                 ` : ''}
 
                 <div class="card-actions-bar">
-                    <button class="btn-rx-quick" onclick="event.stopPropagation(); window.location.href='/prescription.html?patientId=${p.patient_id}';" title="Write New Prescription for ${p.name}">
-                        📝 New Prescription
-                    </button>
                     <button class="btn btn-print-quick" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print Blank Pad">
                         🖨️ Print OPD Card
                     </button>
@@ -261,9 +268,7 @@ async function loadPatient(patientId) {
         document.getElementById('detailGender').textContent = data.gender || '—';
         document.getElementById('detailPhone').textContent = data.phone || '—';
         document.getElementById('detailAddress').textContent = data.address || '—';
-        const lastVisit = (data.prescriptions && data.prescriptions.length > 0 ? data.prescriptions[0].created_at : null)
-            || data.last_visit_date
-            || data.created_at;
+        const lastVisit = data.last_visit_date || (data.prescriptions && data.prescriptions[0] ? data.prescriptions[0].created_at : data.created_at);
         const detailLastVisitEl = document.getElementById('detailLastVisit');
         if (detailLastVisitEl) detailLastVisitEl.textContent = formatVisitDate(lastVisit);
 
@@ -287,7 +292,7 @@ async function loadPatient(patientId) {
         } else {
             rxHistory.innerHTML = `
                 <div class="empty-history-box">
-                    <p>No past prescriptions recorded yet for ${data.name}. Click "Write New Prescription" to create one or "Print OPD Card" to generate a blank slip.</p>
+                    <p>No past prescriptions recorded yet for ${data.name}. Click "Print OPD Card" to generate a slip.</p>
                 </div>`;
         }
 
@@ -299,14 +304,6 @@ async function loadPatient(patientId) {
 }
 
 // ===== Action Buttons =====
-if (detailNewRxBtn) {
-    detailNewRxBtn.addEventListener('click', () => {
-        if (currentPatient) {
-            window.location.href = `/prescription.html?patientId=${currentPatient.patient_id}`;
-        }
-    });
-}
-
 if (printBlankPadBtn) {
     printBlankPadBtn.addEventListener('click', () => {
         if (currentPatient) {
@@ -462,8 +459,163 @@ if (deletePatientBtn) {
     });
 }
 
+// ===== Doctor Security & Lock Screen =====
+const doctorLockModal = document.getElementById('doctorLockModal');
+const doctorPinInput = document.getElementById('doctorPinInput');
+const lockErrorMsg = document.getElementById('lockErrorMsg');
+const rememberDeviceCheck = document.getElementById('rememberDeviceCheck');
+
+function showLockScreen(errMsg = null) {
+    if (doctorLockModal) {
+        doctorLockModal.classList.remove('hidden');
+        if (errMsg) {
+            lockErrorMsg.textContent = errMsg;
+            lockErrorMsg.style.display = 'flex';
+        } else {
+            lockErrorMsg.style.display = 'none';
+        }
+        if (doctorPinInput) {
+            doctorPinInput.value = '';
+            setTimeout(() => doctorPinInput.focus(), 150);
+        }
+    }
+}
+
+function hideLockScreen() {
+    if (doctorLockModal) {
+        doctorLockModal.classList.add('hidden');
+        if (lockErrorMsg) lockErrorMsg.style.display = 'none';
+        if (doctorPinInput) doctorPinInput.value = '';
+    }
+}
+
+function togglePinVisibility() {
+    if (!doctorPinInput) return;
+    const isPass = doctorPinInput.type === 'password';
+    doctorPinInput.type = isPass ? 'text' : 'password';
+    const btn = document.getElementById('togglePasswordVisibility');
+    if (btn) btn.textContent = isPass ? '🔒' : '👁️';
+}
+
+function appendPin(num) {
+    if (!doctorPinInput) return;
+    doctorPinInput.value += num;
+    doctorPinInput.focus();
+}
+
+function clearPin() {
+    if (!doctorPinInput) return;
+    doctorPinInput.value = '';
+    doctorPinInput.focus();
+}
+
+function backspacePin() {
+    if (!doctorPinInput) return;
+    doctorPinInput.value = doctorPinInput.value.slice(0, -1);
+    doctorPinInput.focus();
+}
+
+async function handleDoctorLogin(event) {
+    if (event) event.preventDefault();
+    const pin = (doctorPinInput ? doctorPinInput.value : '').trim();
+    if (!pin) {
+        showLockError('Please enter Doctor PIN or Password.');
+        return;
+    }
+
+    const remember = rememberDeviceCheck ? rememberDeviceCheck.checked : true;
+    const submitBtn = document.getElementById('unlockBtn');
+    const submitBtnText = document.getElementById('unlockBtnText');
+
+    if (submitBtn) submitBtn.disabled = true;
+    if (submitBtnText) submitBtnText.textContent = 'Verifying...';
+
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin, remember })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || 'Incorrect PIN or Password');
+        }
+
+        // Store token in localStorage
+        localStorage.setItem('clinic_auth_token', data.token);
+        hideLockScreen();
+        showToast('✓ Welcome back, Dr. Bakshi!');
+
+        // Refresh dashboard data
+        loadStats();
+        doSearch();
+    } catch (err) {
+        showLockError(err.message);
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitBtnText) submitBtnText.textContent = '🔓 Unlock OPD Dashboard';
+    }
+}
+
+function showLockError(msg) {
+    if (lockErrorMsg) {
+        lockErrorMsg.textContent = msg;
+        lockErrorMsg.style.display = 'flex';
+        lockErrorMsg.style.animation = 'none';
+        lockErrorMsg.offsetHeight; // Trigger reflow for animation restart
+        lockErrorMsg.style.animation = 'lockShake 0.35s ease';
+    }
+    if (doctorPinInput) {
+        doctorPinInput.focus();
+        doctorPinInput.select();
+    }
+}
+
+async function lockClinicApp() {
+    const token = localStorage.getItem('clinic_auth_token');
+    try {
+        if (token) {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        }
+    } catch (e) {}
+    localStorage.removeItem('clinic_auth_token');
+    showToast('🔒 Dashboard locked');
+    showLockScreen();
+}
+
+async function initAuthAndApp() {
+    updateDateBadge();
+    const token = localStorage.getItem('clinic_auth_token');
+    if (!token) {
+        showLockScreen();
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/auth/verify', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            localStorage.removeItem('clinic_auth_token');
+            showLockScreen('Session expired. Please enter Doctor PIN.');
+            return;
+        }
+        hideLockScreen();
+        loadStats();
+        doSearch();
+    } catch {
+        // In case of temporary offline/network hiccup, proceed if token is cached
+        hideLockScreen();
+        loadStats();
+        doSearch();
+    }
+}
+
 // ===== Init on Page Load =====
-updateDateBadge();
-loadStats();
-doSearch();
+initAuthAndApp();
+
 

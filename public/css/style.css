@@ -1994,61 +1994,48 @@ body {
 
 .card-actions-bar {
     display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.btn-rx-quick {
-    flex: 1.1;
-    min-width: 135px;
-    background: #ecfdf5;
-    color: #047857;
-    border: 1.5px solid #6ee7b7;
-    padding: 0.45rem 0.75rem;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.825rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-}
-
-.btn-rx-quick:hover {
-    background: #059669;
-    color: #ffffff;
-    border-color: #059669;
-    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+    gap: 0.65rem;
+    margin-top: 0.25rem;
 }
 
 .btn-print-quick {
     flex: 1;
-    min-width: 125px;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1.5px solid #bfdbfe;
-    padding: 0.45rem 0.75rem;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1.5px solid #a7f3d0;
+    padding: 0.45rem 0.85rem;
     border-radius: 6px;
     font-weight: 700;
     font-size: 0.825rem;
     cursor: pointer;
     transition: all 0.2s;
     text-align: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
 }
 
 .btn-print-quick:hover {
+    background: #10b981;
+    color: #ffffff;
+    border-color: #10b981;
+}
+
+.btn-rx-quick {
+    flex: 1;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1.5px solid #bfdbfe;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.825rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.btn-rx-quick:hover {
     background: #2563eb;
     color: #ffffff;
     border-color: #2563eb;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 .btn-edit-quick {
@@ -2406,4 +2393,278 @@ body {
     justify-content: flex-end;
     gap: 0.75rem;
 }
+
+/* ─── Doctor Security Lock Screen ─── */
+.lock-screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at top right, rgba(13, 110, 253, 0.15), rgba(15, 23, 42, 0.92)), #0b1329;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.lock-screen-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.lock-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 390px;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    animation: lockPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes lockPopIn {
+    0% { transform: scale(0.92) translateY(12px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.lock-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+    color: #ffffff;
+    text-align: center;
+    padding: 1.75rem 1.5rem 1.25rem;
+    position: relative;
+}
+
+.lock-logo-badge {
+    width: 58px;
+    height: 58px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.lock-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.2rem;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.lock-subtitle {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.lock-doctor-meta {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.78);
+    margin-top: 0.2rem;
+}
+
+.lock-body {
+    padding: 1.4rem 1.6rem 1.6rem;
+}
+
+.lock-error {
+    background: #fee2e2;
+    border: 1px solid #f87171;
+    color: #991b1b;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    margin-bottom: 1.1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: lockShake 0.35s ease;
+}
+
+@keyframes lockShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.lock-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.9rem;
+}
+
+.lock-input {
+    width: 100%;
+    padding: 0.85rem 3rem 0.85rem 1rem;
+    font-size: 1.15rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.lock-input:focus {
+    border-color: #0d6efd;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+}
+
+.lock-eye-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    cursor: pointer;
+    color: #64748b;
+    padding: 6px;
+    border-radius: 6px;
+    transition: color 0.2s;
+}
+
+.lock-eye-btn:hover {
+    color: #0f172a;
+}
+
+/* Keypad */
+.lock-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+}
+
+.keypad-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.65rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.keypad-btn:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.keypad-btn:active {
+    background: #cbd5e1;
+    transform: translateY(1px);
+}
+
+.keypad-btn.keypad-fn {
+    font-size: 1rem;
+    color: #475569;
+    background: #f8fafc;
+}
+
+.lock-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.lock-remember-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+}
+
+.lock-remember-label input[type="checkbox"] {
+    accent-color: #0d6efd;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.lock-submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #0d6efd 0%, #0077ff 100%);
+    color: #ffffff;
+    border: none;
+    padding: 0.85rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.lock-submit-btn:hover {
+    background: linear-gradient(135deg, #0b5ed7 0%, #0066dd 100%);
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+    transform: translateY(-1px);
+}
+
+.lock-submit-btn:active {
+    transform: translateY(0);
+}
+
+.lock-hint {
+    margin-top: 0.85rem;
+    text-align: center;
+    font-size: 0.76rem;
+    color: #64748b;
+}
+
+/* Navbar lock button */
+.lock-nav-btn {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+}
+
+.lock-nav-btn:hover {
+    background: rgba(239, 68, 68, 0.85);
+    border-color: rgba(239, 68, 68, 1);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
 

@@ -13,12 +13,16 @@ async function loadPrescription() {
         return;
     }
 
+    const token = localStorage.getItem('clinic_auth_token') || params.get('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
     let patient = null;
     let rxData = null;
 
     try {
         if (rxId) {
-            const res = await fetch(`/api/prescriptions/${rxId}`);
+            const res = await fetch(`/api/prescriptions/${rxId}`, { headers });
+            if (res.status === 401) throw new Error('Doctor login required to print OPD slip.');
             if (!res.ok) throw new Error('Prescription record not found');
             rxData = await res.json();
             patient = {
@@ -31,7 +35,8 @@ async function loadPrescription() {
                 created_at: rxData.created_at
             };
         } else {
-            const res = await fetch(`/api/patients/${patientId}`);
+            const res = await fetch(`/api/patients/${patientId}`, { headers });
+            if (res.status === 401) throw new Error('Doctor login required to print OPD slip.');
             if (!res.ok) throw new Error('Patient record not found');
             patient = await res.json();
         }
@@ -39,12 +44,17 @@ async function loadPrescription() {
         renderPrescription(patient, rxData);
     } catch (err) {
         document.getElementById('opdCard').innerHTML =
-            `<div style="text-align:center;padding:4rem;font-size:14px;color:#c0392b;">${err.message}</div>`;
+            `<div style="text-align:center;padding:4rem;font-size:14px;color:#c0392b;">
+                ${err.message}<br><br>
+                <a href="/" style="display:inline-block;padding:8px 16px;background:#0d6efd;color:white;text-decoration:none;border-radius:8px;font-weight:600;">
+                    ← Back to Doctor Dashboard
+                </a>
+            </div>`;
     }
 }
 
 function renderPrescription(patient, rxData) {
-    const now = (rxData && rxData.created_at) ? new Date(rxData.created_at) : new Date();
+    const now = new Date((rxData && rxData.created_at) || patient.created_at || Date.now());
 
     // Patient Fields
     document.getElementById('pName').textContent = (patient.name || '--').toUpperCase();
@@ -59,17 +69,12 @@ function renderPrescription(patient, rxData) {
     const dayStr = now.toLocaleDateString('en-US', { weekday: 'long' });
     document.getElementById('pVisitDate').textContent = `${visitDateStr} (${dayStr})`;
 
-    // Last Visit Date: When the patient last came based on data
+    // Last Visit Date
     let lastVisitDate = null;
     if (rxData && rxData.previous_visit_date) {
         lastVisitDate = rxData.previous_visit_date;
-    } else if (patient.prescriptions && patient.prescriptions.length > 0) {
-        if (rxData) {
-            const olderRxs = patient.prescriptions.filter(r => new Date(r.created_at) < new Date(rxData.created_at));
-            lastVisitDate = olderRxs.length > 0 ? olderRxs[0].created_at : (patient.last_visit_date || patient.created_at);
-        } else {
-            lastVisitDate = patient.prescriptions[0].created_at;
-        }
+    } else if (!rxData && patient.prescriptions && patient.prescriptions.length > 0) {
+        lastVisitDate = patient.prescriptions[0].created_at;
     } else {
         lastVisitDate = patient.last_visit_date || patient.created_at;
     }

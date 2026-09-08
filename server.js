@@ -26,9 +26,13 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// Auth Middleware
+const { requireAuth } = require('./middleware/auth');
+
 // API Routes
-app.use('/api/patients', require('./routes/patients'));
-app.use('/api/prescriptions', require('./routes/prescriptions'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/patients', requireAuth, require('./routes/patients'));
+app.use('/api/prescriptions', requireAuth, require('./routes/prescriptions'));
 
 // Fallback — serve index.html
 app.get('*', (req, res) => {

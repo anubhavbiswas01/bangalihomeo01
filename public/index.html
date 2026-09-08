@@ -28,6 +28,9 @@
             <span class="status-pill">
                 <span class="status-dot"></span> OPD Active
             </span>
+            <button type="button" id="lockDashboardBtn" class="lock-nav-btn" title="Lock OPD Dashboard" onclick="lockClinicApp()">
+                🔒 Lock
+            </button>
         </div>
     </nav>
 
@@ -128,11 +131,8 @@
                     </div>
                 </div>
                 <div class="detail-actions">
-                    <button class="btn btn-emerald btn-lg" id="detailNewRxBtn">
-                        📝 Write New Prescription
-                    </button>
-                    <button class="btn btn-print-quick btn-lg" id="printBlankPadBtn" style="font-size:0.95rem; padding:0.65rem 1.1rem;">
-                        🖨️ Print OPD Card (Write with Pen)
+                    <button class="btn btn-emerald btn-lg" id="printBlankPadBtn">
+                        🖨️ Print OPD Patient Card (Write with Pen)
                     </button>
                     <button class="btn btn-sapphire btn-lg" id="editPatientBtn">
                         ✏️ Edit Details
@@ -333,6 +333,62 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ─── Doctor Security Lock Screen Overlay ─── -->
+    <div id="doctorLockModal" class="lock-screen-overlay">
+        <div class="lock-card">
+            <div class="lock-header">
+                <div class="lock-logo-badge">⚕️</div>
+                <h2 class="lock-title">Doctor Security Access</h2>
+                <div class="lock-subtitle">Bengali Homeopathic Clinic</div>
+                <div class="lock-doctor-meta">Dr. Sapan Bakshi · Reg. No. 30444</div>
+            </div>
+
+            <div class="lock-body">
+                <div id="lockErrorMsg" class="lock-error" style="display: none;"></div>
+
+                <form id="doctorLoginForm" onsubmit="handleDoctorLogin(event)">
+                    <div class="lock-input-wrap">
+                        <input type="password" id="doctorPinInput" class="lock-input" placeholder="Doctor PIN / Password" autocomplete="current-password" autofocus required>
+                        <button type="button" class="lock-eye-btn" id="togglePasswordVisibility" title="Show / Hide PIN" onclick="togglePinVisibility()">
+                            👁️
+                        </button>
+                    </div>
+
+                    <!-- Quick Touch Keypad for phone / tablet -->
+                    <div class="lock-keypad">
+                        <button type="button" class="keypad-btn" onclick="appendPin('1')">1</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('2')">2</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('3')">3</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('4')">4</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('5')">5</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('6')">6</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('7')">7</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('8')">8</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('9')">9</button>
+                        <button type="button" class="keypad-btn keypad-fn" onclick="clearPin()">C</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('0')">0</button>
+                        <button type="button" class="keypad-btn keypad-fn" onclick="backspacePin()">⌫</button>
+                    </div>
+
+                    <div class="lock-options">
+                        <label class="lock-remember-label">
+                            <input type="checkbox" id="rememberDeviceCheck" checked>
+                            <span>Remember this device for 30 days</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="unlockBtn" class="lock-submit-btn">
+                        <span id="unlockBtnText">🔓 Unlock OPD Dashboard</span>
+                    </button>
+
+                    <div class="lock-hint">
+                        💡 Default PIN: <strong>30444</strong> (Doctor's Registration Number)
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
