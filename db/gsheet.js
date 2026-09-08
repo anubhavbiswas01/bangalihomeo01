@@ -122,7 +122,20 @@ async function getStats() {
 }
 
 async function getPatientById(id) {
-    return await request('get_patient', { id });
+    const patient = await request('get_patient', { id });
+    if (patient && Array.isArray(patient.prescriptions)) {
+        for (const rx of patient.prescriptions) {
+            if (!rx.medicines || rx.medicines.length === 0) {
+                try {
+                    const fullRx = await getPrescriptionById(rx.rx_id);
+                    if (fullRx && Array.isArray(fullRx.medicines)) {
+                        rx.medicines = fullRx.medicines;
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+    return patient;
 }
 
 async function createPatient(data) {

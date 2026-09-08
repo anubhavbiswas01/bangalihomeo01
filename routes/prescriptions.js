@@ -13,7 +13,7 @@ async function nextRxId() {
 // ── POST /api/prescriptions — Create a new prescription ──
 router.post('/', async (req, res) => {
     try {
-        const { patient_id, complaints, diagnosis, notes, medicines } = req.body;
+        const { patient_id, complaints, diagnosis, notes, medicines, previous_visit_date } = req.body;
 
         if (!patient_id) {
             return res.status(400).json({ error: 'Patient ID is required.' });
@@ -33,23 +33,37 @@ router.post('/', async (req, res) => {
             // Ignore if DB not reachable
         }
 
+        // Determine previous visit date from last prescription
+        let prevDate = previous_visit_date;
+        if (!prevDate) {
+            try {
+                const lastRx = await db.get(
+                    `SELECT created_at FROM prescriptions WHERE patient_id = ? OR patient_id = ? ORDER BY id DESC LIMIT 1`,
+                    [ptNumId, ptCode]
+                );
+                prevDate = lastRx ? lastRx.created_at : null;
+            } catch (e) {}
+        }
+
         if (gsheet.isConfigured()) {
             const newRx = await gsheet.createPrescription({
                 patient_id: ptCode || patient_id,
                 complaints,
                 diagnosis,
                 notes,
-                medicines: medList
+                medicines: medList,
+                previous_visit_date: prevDate
             });
             return res.status(201).json(newRx);
         }
         const rxId = await nextRxId();
+        const nowIso = new Date().toISOString();
 
         const prescriptionId = await db.transaction(async (tx) => {
             const result = await tx.run(
-                `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes)
-                 VALUES (?, ?, ?, ?, ?)`,
-                [rxId, ptNumId, complaints || '', diagnosis || '', notes || '']
+                `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes, previous_visit_date, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [rxId, ptNumId, complaints || '', diagnosis || '', notes || '', prevDate || null, nowIso]
             );
             const pId = result.lastInsertRowid;
 
@@ -63,6 +77,12 @@ router.post('/', async (req, res) => {
                 }
             }
 
+            // Update patient's last_visit_date in local DB
+            await tx.run(
+                `UPDATE patients SET last_visit_date = ? WHERE id = ? OR patient_id = ?`,
+                [nowIso, ptNumId, ptCode]
+            );
+
             return pId;
         });
 
@@ -72,11 +92,14 @@ router.post('/', async (req, res) => {
             patient_id,
             complaints,
             diagnosis,
-            notes
+            notes,
+            previous_visit_date: prevDate,
+            medicines: medList,
+            created_at: nowIso
         });
     } catch (err) {
         console.error('Error creating prescription:', err);
-        res.status(500).json({ error: 'Failed to create prescription.' });
+        res.status(500).json({ error: 'Failed to create prescription: ' + err.message });
     }
 });
 

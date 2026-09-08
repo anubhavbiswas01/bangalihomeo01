@@ -3038,5 +3038,367 @@ body {
     color: #0f172a;
 }
 
+/* ─── Prescription Modal & Medicine Prescribing ─── */
+.modal-prescription {
+    max-width: 780px;
+    width: 95%;
+}
+
+.rx-summary-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.rx-patient-info-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.rx-p-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #0284c7);
+    color: #ffffff;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.25);
+}
+
+.rx-p-code {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    font-size: 0.76rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    margin-left: 0.35rem;
+}
+
+.rx-visit-dates-wrap {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.visit-date-pill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.visit-date-pill .v-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+}
+
+.pill-today {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.pill-last {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+
+.rx-medicines-section {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.rx-med-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.rx-med-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.rx-sym {
+    font-size: 1.35rem;
+    font-family: Georgia, serif;
+    font-weight: 700;
+    color: #0d6efd;
+    line-height: 1;
+}
+
+.potency-chips-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+}
+
+.potency-hint {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.potency-chip {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #334155;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.potency-chip:hover {
+    background: #e0f2fe;
+    border-color: #38bdf8;
+    color: #0369a1;
+}
+
+.medicines-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.medicine-row-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    display: grid;
+    grid-template-columns: 2.2fr 1.1fr 1.3fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    transition: border-color 0.15s ease;
+}
+
+.medicine-row-card:focus-within {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.12);
+}
+
+.med-input {
+    width: 100%;
+    height: 34px;
+    padding: 0 0.5rem;
+    font-size: 0.82rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    background: #f8fafc;
+}
+
+.med-input:focus {
+    border-color: #0d6efd;
+    background: #ffffff;
+}
+
+.btn-del-med {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+.btn-del-med:hover {
+    background: #fca5a5;
+    color: #991b1b;
+}
+
+@media (max-width: 640px) {
+    .medicine-row-card {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
+    }
+    .med-input-name {
+        grid-column: 1/-1;
+    }
+}
+
+/* ─── Enhanced Prescription History Cards ─── */
+.rx-history-card-enhanced {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-left: 5px solid #0d6efd;
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rx-history-card-enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.rx-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rx-id-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.rx-code-pill {
+    background: #0d6efd;
+    color: #ffffff;
+    font-family: monospace;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.rx-date-pill {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+}
+
+.rx-prev-pill {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #fde68a;
+}
+
+.rx-clinical-row {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.82rem;
+    color: #334155;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border: 1px solid #e2e8f0;
+}
+
+.rx-diag-text {
+    color: #0d6efd;
+    font-weight: 700;
+}
+
+.rx-comp-text {
+    color: #475569;
+}
+
+.rx-medicines-box {
+    margin-bottom: 0.75rem;
+}
+
+.rx-meds-heading {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #1e293b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.45rem;
+}
+
+.rx-meds-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rx-med-chip {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.med-name-badge {
+    font-weight: 800;
+    color: #065f46;
+    margin-bottom: 0.15rem;
+}
+
+.med-dosage-text {
+    font-size: 0.72rem;
+    color: #047857;
+    font-weight: 600;
+}
+
+.rx-no-digital-meds {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-style: italic;
+    padding: 0.4rem 0.5rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.rx-notes-row {
+    font-size: 0.8rem;
+    color: #475569;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+
 
 

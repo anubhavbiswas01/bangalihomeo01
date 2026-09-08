@@ -131,10 +131,13 @@
                     </div>
                 </div>
                 <div class="detail-actions">
-                    <button class="btn btn-emerald btn-lg" id="printBlankPadBtn">
-                        🖨️ Print OPD Patient Card (Write with Pen)
+                    <button class="btn btn-emerald btn-lg" id="addRxBtn" onclick="openAddRxModal()">
+                        💊 + Add Prescription
                     </button>
-                    <button class="btn btn-sapphire btn-lg" id="editPatientBtn">
+                    <button class="btn btn-sapphire btn-lg" id="printBlankPadBtn">
+                        🖨️ Print OPD Card (Pen)
+                    </button>
+                    <button class="btn btn-outline btn-lg" id="editPatientBtn">
                         ✏️ Edit Details
                     </button>
                     <button class="btn btn-danger-soft btn-lg" id="deletePatientBtn">
@@ -187,8 +190,11 @@
             </div>
 
             <!-- Prescription History -->
-            <div class="section-title-bar">
+            <div class="section-title-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <span class="title-text">📋 Past Prescriptions & Medical History</span>
+                <button type="button" class="btn btn-emerald btn-sm" onclick="openAddRxModal()" style="font-weight: 700;">
+                    💊 + Write New Prescription
+                </button>
             </div>
             <div id="rxHistory"></div>
         </div>
@@ -426,6 +432,105 @@
                     <button type="button" class="btn btn-outline" id="cancelEditPatientBtn2">Cancel</button>
                     <button type="submit" class="btn btn-emerald btn-lg" id="saveEditPatientBtn">
                         ✓ Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Write / Add Prescription Modal ─── -->
+    <div class="modal-overlay" id="prescriptionModal">
+        <div class="modal modal-vibrant modal-prescription">
+            <div class="modal-header-vibrant">
+                <div class="modal-title-group">
+                    <span class="modal-icon">💊</span>
+                    <div>
+                        <h3>Write New Prescription</h3>
+                        <p id="rxModalPatientSub">Select a patient to prescribe medicines</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeAddRxModal()" title="Close">✕</button>
+            </div>
+
+            <form id="newPrescriptionForm" onsubmit="handleSavePrescription(event)">
+                <input type="hidden" id="rxPatientId">
+                <input type="hidden" id="rxPreviousVisitDate">
+
+                <div class="modal-body-vibrant">
+                    <!-- Patient & Visit Summary Banner -->
+                    <div class="rx-summary-banner">
+                        <div class="rx-patient-info-wrap">
+                            <span class="rx-p-avatar" id="rxModalAvatar">--</span>
+                            <div>
+                                <strong id="rxModalPatientName">--</strong>
+                                <span class="rx-p-code" id="rxModalPatientId">--</span>
+                            </div>
+                        </div>
+                        <div class="rx-visit-dates-wrap">
+                            <div class="visit-date-pill pill-today">
+                                <span class="v-label">TODAY'S VISIT:</span>
+                                <strong id="rxModalTodayDate">--</strong>
+                            </div>
+                            <div class="visit-date-pill pill-last" id="rxModalLastVisitPill">
+                                <span class="v-label">LAST VISIT:</span>
+                                <strong id="rxModalLastVisitText">--</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complaints & Diagnosis -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Chief Complaints / Symptoms</label>
+                            <input type="text" id="rxComplaints" placeholder="e.g. Dry cough, fever with chills, body ache since 3 days...">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Clinical Diagnosis / Finding</label>
+                            <input type="text" id="rxDiagnosis" placeholder="e.g. Acute Bronchitis, Allergic Rhinitis...">
+                        </div>
+                    </div>
+
+                    <!-- Prescribed Medicines Section -->
+                    <div class="rx-medicines-section">
+                        <div class="rx-med-header">
+                            <div class="rx-med-title">
+                                <span class="rx-sym">℞</span> Prescribed Medicines
+                            </div>
+                            <button type="button" class="btn btn-sm btn-emerald" onclick="addMedicineRow()">
+                                + Add Medicine Row
+                            </button>
+                        </div>
+
+                        <!-- Quick Potency Helper Chips -->
+                        <div class="potency-chips-bar">
+                            <span class="potency-hint">Quick Potency:</span>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('30C')">30C</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('200C')">200C</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('1M')">1M</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('Q')">Q (Mother Tincture)</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('6X')">6X</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('12X')">12X</button>
+                        </div>
+
+                        <div id="medicinesListContainer" class="medicines-list-container">
+                            <!-- Dynamic medicine rows populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Advice & Notes -->
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Advice, Diet & Instructions</label>
+                        <textarea id="rxNotes" rows="2" placeholder="e.g. Take medicines 15 minutes before food with warm water. Avoid raw onion, garlic, and sour foods."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" onclick="closeAddRxModal()">Cancel</button>
+                    <button type="submit" class="btn btn-sapphire btn-lg" id="saveRxBtn">
+                        ✓ Save Prescription
+                    </button>
+                    <button type="button" class="btn btn-emerald btn-lg" id="saveAndPrintRxBtn" onclick="handleSaveAndPrintPrescription(event)">
+                        🖨️ Save & Print OPD Slip
                     </button>
                 </div>
             </form>

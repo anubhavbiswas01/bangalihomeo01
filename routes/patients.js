@@ -173,6 +173,13 @@ router.get('/:id', async (req, res) => {
             [patient.id, patient.patient_id]
         );
 
+        for (const rx of prescriptions) {
+            rx.medicines = await db.all(
+                'SELECT * FROM prescription_medicines WHERE prescription_id = ?',
+                [rx.id]
+            );
+        }
+
         const lastVisitDate = (prescriptions && prescriptions.length > 0 && prescriptions[0].created_at)
             ? prescriptions[0].created_at
             : (patient.last_visit_date || patient.created_at);

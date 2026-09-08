@@ -35,10 +35,17 @@ async function init() {
             complaints TEXT,
             diagnosis TEXT,
             notes TEXT,
+            previous_visit_date TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (patient_id) REFERENCES patients(id)
         );
     `);
+
+    try {
+        await client.execute('ALTER TABLE prescriptions ADD COLUMN previous_visit_date TEXT');
+    } catch (e) {
+        // column already exists
+    }
 
     await client.execute(`
         CREATE TABLE IF NOT EXISTS prescription_medicines (

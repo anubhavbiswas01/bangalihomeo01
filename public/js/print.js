@@ -96,11 +96,48 @@ function renderPrescription(patient, rxData) {
     const pAddr = (patient.address && patient.address.trim()) || '';
     document.getElementById('pAddress').textContent = pAddr;
 
-    // If prescription had complaints, show in Clinical Notes column
-    if (rxData && rxData.complaints && rxData.complaints.trim()) {
+    // If prescription had complaints or diagnosis, show in Clinical Notes column
+    if (rxData && ((rxData.complaints && rxData.complaints.trim()) || (rxData.diagnosis && rxData.diagnosis.trim()))) {
         const compEl = document.getElementById('printedComplaints');
-        compEl.innerHTML = `<strong>CHIEF COMPLAINTS:</strong> ${rxData.complaints}`;
+        let html = '';
+        if (rxData.diagnosis && rxData.diagnosis.trim()) {
+            html += `<strong>DIAGNOSIS:</strong> ${rxData.diagnosis}<br><br>`;
+        }
+        if (rxData.complaints && rxData.complaints.trim()) {
+            html += `<strong>CHIEF COMPLAINTS:</strong> ${rxData.complaints}`;
+        }
+        compEl.innerHTML = html;
         compEl.style.display = 'block';
+    }
+
+    // If prescription had prescribed medicines, render under ℞
+    if (rxData && Array.isArray(rxData.medicines) && rxData.medicines.length > 0) {
+        const medContainer = document.getElementById('printedMedicinesList');
+        if (medContainer) {
+            medContainer.innerHTML = `
+                <div class="printed-meds-table">
+                    ${rxData.medicines.map((m, idx) => `
+                        <div class="printed-med-row">
+                            <span class="med-num">${idx + 1}.</span>
+                            <span class="med-title">${m.medicine_name}</span>
+                            ${m.dosage ? `<span class="med-dose">— ${m.dosage}</span>` : ''}
+                            ${m.frequency ? `<span class="med-freq">(${m.frequency})</span>` : ''}
+                            ${m.duration ? `<span class="med-dur">for ${m.duration}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            medContainer.style.display = 'block';
+        }
+    }
+
+    // If prescription had special advice/diet notes
+    if (rxData && rxData.notes && rxData.notes.trim()) {
+        const notesContainer = document.getElementById('printedAdviceNotes');
+        if (notesContainer) {
+            notesContainer.innerHTML = `<strong>ADVICE / INSTRUCTIONS:</strong> ${rxData.notes}`;
+            notesContainer.style.display = 'block';
+        }
     }
 }
 

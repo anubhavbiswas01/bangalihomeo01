@@ -571,23 +571,66 @@ async function loadPatient(patientId) {
         const rxHistory = document.getElementById('rxHistory');
         if (data.prescriptions && data.prescriptions.length > 0) {
             rxHistory.innerHTML = data.prescriptions.map(rx => `
-                <div class="rx-history-card">
-                    <div class="rx-card-info">
-                        <span class="rx-pill">${rx.rx_id}</span>
-                        <span class="rx-diag">${rx.diagnosis || rx.complaints || 'Prescription Entry'}</span>
-                    </div>
-                    <div class="flex gap-1" style="align-items:center;">
-                        <span class="rx-date-text">📅 ${new Date(rx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                <div class="rx-history-card-enhanced">
+                    <div class="rx-card-top">
+                        <div class="rx-id-group">
+                            <span class="rx-code-pill">${rx.rx_id}</span>
+                            <span class="rx-date-pill">📅 Visit: ${formatVisitDate(rx.created_at)}</span>
+                            ${rx.previous_visit_date ? `<span class="rx-prev-pill">⏮️ Last Visit: ${formatVisitDate(rx.previous_visit_date)}</span>` : ''}
+                        </div>
                         <button class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.open('/print.html?rx=${rx.rx_id}', '_blank')">
                             🖨️ Print Slip
                         </button>
                     </div>
+
+                    ${(rx.complaints || rx.diagnosis) ? `
+                        <div class="rx-clinical-row">
+                            ${rx.diagnosis ? `<div><strong>Diagnosis:</strong> <span class="rx-diag-text">${escapeHtml(rx.diagnosis)}</span></div>` : ''}
+                            ${rx.complaints ? `<div><strong>Chief Complaints:</strong> <span class="rx-comp-text">${escapeHtml(rx.complaints)}</span></div>` : ''}
+                        </div>
+                    ` : ''}
+
+                    <!-- Prescribed Medicines -->
+                    <div class="rx-medicines-box">
+                        <div class="rx-meds-heading">℞ Prescribed Medicines (${(rx.medicines && rx.medicines.length) || 0}):</div>
+                        ${(rx.medicines && rx.medicines.length > 0) ? `
+                            <div class="rx-meds-grid">
+                                ${rx.medicines.map(m => `
+                                    <div class="rx-med-chip">
+                                        <div class="med-name-badge">💊 ${escapeHtml(m.medicine_name)}</div>
+                                        <div class="med-dosage-text">
+                                            ${m.dosage ? `<span>${escapeHtml(m.dosage)}</span>` : ''}
+                                            ${m.frequency ? `<span>· ${escapeHtml(m.frequency)}</span>` : ''}
+                                            ${m.duration ? `<span>· for ${escapeHtml(m.duration)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div class="rx-no-digital-meds">
+                                ✍️ Notes and medicines written with pen on printed OPD card
+                            </div>
+                        `}
+                    </div>
+
+                    ${rx.notes ? `
+                        <div class="rx-notes-row">
+                            <strong>Advice / Diet:</strong> ${escapeHtml(rx.notes)}
+                        </div>
+                    ` : ''}
                 </div>
             `).join('');
         } else {
             rxHistory.innerHTML = `
-                <div class="empty-history-box">
-                    <p>No past prescriptions recorded yet for ${data.name}. Click "Print OPD Card" to generate a slip.</p>
+                <div class="empty-history-box" style="text-align: center; padding: 2.5rem 1rem; background: #f8fafc; border-radius: 12px; border: 1.5px dashed #cbd5e1;">
+                    <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">💊</div>
+                    <p style="font-weight: 700; color: #1e293b; margin-bottom: 0.25rem;">No past prescriptions recorded yet for ${escapeHtml(data.name)}.</p>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Click below to prescribe medicines or print a blank OPD slip.</p>
+                    <div class="flex gap-1" style="justify-content: center;">
+                        <button class="btn btn-emerald btn-lg" onclick="openAddRxModal()">
+                            💊 + Write First Prescription
+                        </button>
+                    </div>
                 </div>`;
         }
 
@@ -752,6 +795,224 @@ if (deletePatientBtn) {
             deletePatient(currentPatient.patient_id, currentPatient.name);
         }
     });
+}
+
+// ===== Add Prescription Modal & Medicine Prescribing =====
+const prescriptionModal = document.getElementById('prescriptionModal');
+
+function openAddRxModal() {
+    if (!currentPatient) {
+        showToast('Please select a patient first to write a prescription.', true);
+        return;
+    }
+
+    const modalAvatar = document.getElementById('rxModalAvatar');
+    const modalName = document.getElementById('rxModalPatientName');
+    const modalId = document.getElementById('rxModalPatientId');
+    const modalSub = document.getElementById('rxModalPatientSub');
+    const rxPatientId = document.getElementById('rxPatientId');
+    const rxPrevDate = document.getElementById('rxPreviousVisitDate');
+    const todayDateEl = document.getElementById('rxModalTodayDate');
+    const lastVisitText = document.getElementById('rxModalLastVisitText');
+    const lastVisitPill = document.getElementById('rxModalLastVisitPill');
+
+    if (modalAvatar) {
+        modalAvatar.textContent = getInitials(currentPatient.name);
+        modalAvatar.style = getAvatarStyle(currentPatient.name);
+    }
+    if (modalName) modalName.textContent = currentPatient.name;
+    if (modalId) modalId.textContent = currentPatient.patient_id;
+    if (modalSub) {
+        modalSub.textContent = `${currentPatient.age ? currentPatient.age + ' Yrs, ' : ''}${currentPatient.gender || ''} · ${currentPatient.address || ''}`;
+    }
+    if (rxPatientId) rxPatientId.value = currentPatient.patient_id;
+
+    if (todayDateEl) {
+        todayDateEl.textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+        });
+    }
+
+    // Determine last visit date as per last prescription created
+    let prevDate = null;
+    if (currentPatient.prescriptions && currentPatient.prescriptions.length > 0) {
+        prevDate = currentPatient.prescriptions[0].created_at;
+    }
+
+    if (prevDate) {
+        if (rxPrevDate) rxPrevDate.value = prevDate;
+        if (lastVisitText) lastVisitText.textContent = formatVisitDate(prevDate);
+        if (lastVisitPill) lastVisitPill.className = 'visit-date-pill pill-last';
+    } else {
+        if (rxPrevDate) rxPrevDate.value = '';
+        if (lastVisitText) lastVisitText.textContent = 'First Visit (No prior Rx)';
+        if (lastVisitPill) lastVisitPill.className = 'visit-date-pill pill-today';
+    }
+
+    // Reset inputs
+    const compEl = document.getElementById('rxComplaints');
+    const diagEl = document.getElementById('rxDiagnosis');
+    const notesEl = document.getElementById('rxNotes');
+    if (compEl) compEl.value = '';
+    if (diagEl) diagEl.value = '';
+    if (notesEl) notesEl.value = '';
+
+    // Clear and add 2 initial medicine rows
+    const medContainer = document.getElementById('medicinesListContainer');
+    if (medContainer) {
+        medContainer.innerHTML = '';
+        addMedicineRow('', '4 pills', '3 times daily', '7 Days');
+        addMedicineRow('', '10 drops', 'Morning & Evening', '15 Days');
+    }
+
+    if (prescriptionModal) prescriptionModal.classList.add('active');
+}
+
+function closeAddRxModal() {
+    if (prescriptionModal) prescriptionModal.classList.remove('active');
+}
+
+if (prescriptionModal) {
+    prescriptionModal.addEventListener('click', e => {
+        if (e.target === prescriptionModal) closeAddRxModal();
+    });
+}
+
+function addMedicineRow(name = '', dosage = '4 pills', frequency = '3 times daily', duration = '7 Days') {
+    const container = document.getElementById('medicinesListContainer');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'medicine-row-card';
+    row.innerHTML = `
+        <input type="text" class="med-input med-input-name" placeholder="Medicine Name & Potency (e.g. Arnica Mont 200C)" value="${escapeHtml(name)}">
+        <input type="text" class="med-input med-input-dosage" placeholder="Dose (e.g. 4 pills, 10 drops)" value="${escapeHtml(dosage)}">
+        <input type="text" class="med-input med-input-frequency" placeholder="Frequency (e.g. 3 times daily)" value="${escapeHtml(frequency)}">
+        <input type="text" class="med-input med-input-duration" placeholder="Duration (e.g. 7 Days)" value="${escapeHtml(duration)}">
+        <button type="button" class="btn-del-med" onclick="this.closest('.medicine-row-card').remove()" title="Remove Medicine">✕</button>
+    `;
+    container.appendChild(row);
+    const nameInput = row.querySelector('.med-input-name');
+    if (nameInput && !name) nameInput.focus();
+}
+
+function applyQuickPotency(potency) {
+    const rows = document.querySelectorAll('#medicinesListContainer .medicine-row-card');
+    if (rows.length === 0) {
+        addMedicineRow(potency);
+        return;
+    }
+    const lastRow = rows[rows.length - 1];
+    const nameInput = lastRow.querySelector('.med-input-name');
+    if (nameInput) {
+        let val = nameInput.value.trim();
+        val = val.replace(/\b(Q|30C|200C|1M|10M|50M|CM|6X|12X|3X)\b/gi, '').trim();
+        nameInput.value = val ? `${val} ${potency}` : potency;
+        nameInput.focus();
+    }
+}
+
+async function savePrescriptionData() {
+    const patientId = document.getElementById('rxPatientId')?.value || currentPatient?.patient_id;
+    if (!patientId) throw new Error('No patient selected.');
+
+    const complaints = document.getElementById('rxComplaints')?.value.trim() || '';
+    const diagnosis = document.getElementById('rxDiagnosis')?.value.trim() || '';
+    const notes = document.getElementById('rxNotes')?.value.trim() || '';
+    const previousVisitDate = document.getElementById('rxPreviousVisitDate')?.value || null;
+
+    const medicineRows = document.querySelectorAll('#medicinesListContainer .medicine-row-card');
+    const medicines = [];
+    medicineRows.forEach(row => {
+        const name = row.querySelector('.med-input-name')?.value.trim() || '';
+        const dosage = row.querySelector('.med-input-dosage')?.value.trim() || '';
+        const frequency = row.querySelector('.med-input-frequency')?.value.trim() || '';
+        const duration = row.querySelector('.med-input-duration')?.value.trim() || '';
+        if (name) {
+            medicines.push({
+                medicine_name: name,
+                dosage,
+                frequency,
+                duration
+            });
+        }
+    });
+
+    const body = {
+        patient_id: patientId,
+        complaints,
+        diagnosis,
+        notes,
+        medicines,
+        previous_visit_date: previousVisitDate
+    };
+
+    const newRx = await api('/api/prescriptions', {
+        method: 'POST',
+        body: JSON.stringify(body)
+    });
+
+    return newRx;
+}
+
+async function handleSavePrescription(event) {
+    if (event) event.preventDefault();
+    const saveBtn = document.getElementById('saveRxBtn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+    }
+
+    try {
+        const newRx = await savePrescriptionData();
+        showToast(`✓ Prescription ${newRx.rx_id} saved successfully!`);
+        closeAddRxModal();
+
+        // Refresh current patient details and history
+        if (currentPatient) {
+            await loadPatient(currentPatient.patient_id);
+        }
+        loadStats();
+        doSearch();
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '✓ Save Prescription';
+        }
+    }
+}
+
+async function handleSaveAndPrintPrescription(event) {
+    if (event) event.preventDefault();
+    const printBtn = document.getElementById('saveAndPrintRxBtn');
+    if (printBtn) {
+        printBtn.disabled = true;
+        printBtn.textContent = 'Saving & Opening Print...';
+    }
+
+    try {
+        const newRx = await savePrescriptionData();
+        showToast(`✓ Prescription ${newRx.rx_id} saved! Opening OPD slip...`);
+        closeAddRxModal();
+
+        // Open print slip in new tab
+        window.open(`/print.html?rx=${newRx.rx_id}`, '_blank');
+
+        // Refresh current patient details
+        if (currentPatient) {
+            await loadPatient(currentPatient.patient_id);
+        }
+        loadStats();
+        doSearch();
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        if (printBtn) {
+            printBtn.disabled = false;
+            printBtn.textContent = '🖨️ Save & Print OPD Slip';
+        }
+    }
 }
 
 // ===== Doctor Security & Lock Screen =====
