@@ -3,7 +3,7 @@ const router = express.Router();
 const { sign, verify, requireAuth } = require('../middleware/auth');
 
 // Default credentials (can be overridden via environment variables)
-const CLINIC_PIN = process.env.CLINIC_PIN || '30444';
+const CLINIC_PIN = process.env.CLINIC_PIN || '250717';
 const CLINIC_PASSWORD = process.env.CLINIC_PASSWORD || 'drbakshi';
 
 // POST /api/auth/login
