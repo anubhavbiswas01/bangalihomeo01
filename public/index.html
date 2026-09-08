@@ -198,8 +198,8 @@
             <div class="directory-header">
                 <div class="directory-title">
                     <span class="dir-icon">📂</span>
-                    <span id="resultsTitle">Recent Patients Directory</span>
-                    <span class="count-pill" id="resultsCount">0</span>
+                    <span id="resultsTitle">Patient Directory</span>
+                    <span class="count-pill" id="resultsCount">0 Patients</span>
                 </div>
                 <div class="directory-actions-row">
                     <button type="button" class="filter-tab-btn active-tab" id="filterRecentBtn">
@@ -208,11 +208,107 @@
                     <button type="button" class="filter-tab-btn" id="filterAllBtn">
                         👥 View All Patients
                     </button>
+                    <div class="view-toggle-group">
+                        <button type="button" class="view-toggle-btn active" id="viewTableBtn" title="Table View">
+                            📋 Table
+                        </button>
+                        <button type="button" class="view-toggle-btn" id="viewCardsBtn" title="Card Grid View">
+                            🎴 Cards
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            <!-- ── Multi-Field Filter Bar (Name, PT ID, Village, Phone) ── -->
+            <div class="directory-filter-bar">
+                <div class="filter-inputs-grid">
+                    <div class="filter-field">
+                        <label for="filterName"><span class="filter-icon">👤</span> Search Name</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterName" placeholder="e.g. Ramesh, Sunita..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterName')">✕</button>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="filterId"><span class="filter-icon">🆔</span> Search PT ID</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterId" placeholder="e.g. PT-00001, 42..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterId')">✕</button>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="filterVillage"><span class="filter-icon">📍</span> Search Village / Address</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterVillage" placeholder="e.g. Sarisab, Pandual..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterVillage')">✕</button>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="filterPhone"><span class="filter-icon">📞</span> Search Phone</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterPhone" placeholder="e.g. 98350..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterPhone')">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-controls-row">
+                    <div class="sort-select-wrap">
+                        <label for="sortOrderSelect">↕️ Sort by:</label>
+                        <select id="sortOrderSelect" class="sort-dropdown" onchange="applySortingAndRender()">
+                            <option value="visit_desc">📅 Last Visit (Newest First)</option>
+                            <option value="visit_asc">📅 Last Visit (Oldest First)</option>
+                            <option value="name_asc">🔤 Patient Name (A → Z)</option>
+                            <option value="name_desc">🔤 Patient Name (Z → A)</option>
+                            <option value="id_asc">🆔 Patient ID (Low → High)</option>
+                            <option value="id_desc">🆔 Patient ID (High → Low)</option>
+                            <option value="village_asc">📍 Village / Address (A → Z)</option>
+                            <option value="village_desc">📍 Village / Address (Z → A)</option>
+                            <option value="age_asc">🎂 Age (Youngest First)</option>
+                            <option value="age_desc">🎂 Age (Oldest First)</option>
+                            <option value="phone_asc">📞 Phone Number (Ascending)</option>
+                        </select>
+                    </div>
+                    <button type="button" id="resetFiltersBtn" class="btn btn-sm btn-outline-danger" onclick="resetAllDirectoryFilters()">
+                        ✕ Clear All Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Patient Table View Container ── -->
+            <div id="tableContainer" class="patients-table-responsive">
+                <table class="patients-table" id="patientsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="id" class="sortable-th" onclick="handleThSort('id')">
+                                Patient ID <span class="sort-icon" id="sortIcon-id">↕</span>
+                            </th>
+                            <th data-sort="name" class="sortable-th" onclick="handleThSort('name')">
+                                Patient Name <span class="sort-icon" id="sortIcon-name">↕</span>
+                            </th>
+                            <th data-sort="age" class="sortable-th" onclick="handleThSort('age')">
+                                Age & Gender <span class="sort-icon" id="sortIcon-age">↕</span>
+                            </th>
+                            <th data-sort="village" class="sortable-th" onclick="handleThSort('village')">
+                                Village / Address <span class="sort-icon" id="sortIcon-village">↕</span>
+                            </th>
+                            <th data-sort="phone" class="sortable-th" onclick="handleThSort('phone')">
+                                Phone Number <span class="sort-icon" id="sortIcon-phone">↕</span>
+                            </th>
+                            <th data-sort="visit" class="sortable-th" onclick="handleThSort('visit')">
+                                Last Visit <span class="sort-icon" id="sortIcon-visit">↕</span>
+                            </th>
+                            <th class="th-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
             <!-- Patient Cards Container -->
-            <div id="searchResults" class="results-grid">
+            <div id="searchResults" class="results-grid hidden">
                 <!-- Populated automatically by JS -->
             </div>
         </div>

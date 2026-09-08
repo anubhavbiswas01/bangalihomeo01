@@ -69,6 +69,8 @@ const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const clearSearchBtn = document.getElementById('clearSearchBtn');
 const searchResults = document.getElementById('searchResults');
+const tableContainer = document.getElementById('tableContainer');
+const patientsTableBody = document.getElementById('patientsTableBody');
 const resultsTitle = document.getElementById('resultsTitle');
 const resultsCount = document.getElementById('resultsCount');
 const patientDetail = document.getElementById('patientDetail');
@@ -88,10 +90,323 @@ const statCardPatients = document.getElementById('statCardPatients');
 const viewAllSearchBtn = document.getElementById('viewAllSearchBtn');
 const filterRecentBtn = document.getElementById('filterRecentBtn');
 const filterAllBtn = document.getElementById('filterAllBtn');
+const viewTableBtn = document.getElementById('viewTableBtn');
+const viewCardsBtn = document.getElementById('viewCardsBtn');
+
+// Multi-field filters
+const filterName = document.getElementById('filterName');
+const filterId = document.getElementById('filterId');
+const filterVillage = document.getElementById('filterVillage');
+const filterPhone = document.getElementById('filterPhone');
+const sortOrderSelect = document.getElementById('sortOrderSelect');
 
 let currentPatient = null;
 let searchTimeout = null;
 let currentViewMode = 'recent'; // 'recent' or 'all'
+let loadedPatients = [];
+let activeLayout = 'table'; // default to table view
+let currentSortColumn = 'visit';
+let currentSortDirection = 'desc';
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+}
+
+function extractIdNum(id) {
+    if (!id) return 0;
+    const match = String(id).match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+}
+
+// ===== Layout Switching =====
+function setViewLayout(layout) {
+    activeLayout = layout;
+    if (layout === 'table') {
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        if (searchResults) searchResults.classList.add('hidden');
+        if (viewTableBtn) viewTableBtn.classList.add('active');
+        if (viewCardsBtn) viewCardsBtn.classList.remove('active');
+    } else {
+        if (tableContainer) tableContainer.classList.add('hidden');
+        if (searchResults) searchResults.classList.remove('hidden');
+        if (viewCardsBtn) viewCardsBtn.classList.add('active');
+        if (viewTableBtn) viewTableBtn.classList.remove('active');
+    }
+}
+
+if (viewTableBtn) viewTableBtn.addEventListener('click', () => setViewLayout('table'));
+if (viewCardsBtn) viewCardsBtn.addEventListener('click', () => setViewLayout('cards'));
+
+// ===== Multi-Field Filter Helpers =====
+function clearSpecificFilter(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (el) {
+        el.value = '';
+        const wrap = el.closest('.filter-input-wrap');
+        if (wrap) wrap.classList.remove('has-val');
+    }
+    applySortingAndRender();
+}
+
+function resetAllDirectoryFilters() {
+    [filterName, filterId, filterVillage, filterPhone, searchInput].forEach(el => {
+        if (el) {
+            el.value = '';
+            const wrap = el.closest('.filter-input-wrap');
+            if (wrap) wrap.classList.remove('has-val');
+        }
+    });
+    if (sortOrderSelect) sortOrderSelect.value = 'visit_desc';
+    currentSortColumn = 'visit';
+    currentSortDirection = 'desc';
+    applySortingAndRender();
+}
+
+// Table Header Column Sorting
+function handleThSort(column) {
+    if (currentSortColumn === column) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = column;
+        currentSortDirection = (column === 'name' || column === 'village' || column === 'id') ? 'asc' : 'desc';
+    }
+
+    const sortVal = `${column}_${currentSortDirection}`;
+    if (sortOrderSelect) sortOrderSelect.value = sortVal;
+    applySortingAndRender();
+}
+
+function updateSortIcons() {
+    const sortHeaders = document.querySelectorAll('.sortable-th');
+    sortHeaders.forEach(th => {
+        const col = th.getAttribute('data-sort');
+        const iconSpan = th.querySelector('.sort-icon');
+        if (col === currentSortColumn) {
+            th.classList.add('sort-active');
+            if (iconSpan) iconSpan.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+        } else {
+            th.classList.remove('sort-active');
+            if (iconSpan) iconSpan.textContent = '↕';
+        }
+    });
+}
+
+// ===== Filter, Sort & Render Engine =====
+function applySortingAndRender() {
+    const nameQ = (filterName ? filterName.value : '').trim().toLowerCase();
+    const idQ = (filterId ? filterId.value : '').trim().toLowerCase();
+    const villageQ = (filterVillage ? filterVillage.value : '').trim().toLowerCase();
+    const phoneQ = (filterPhone ? filterPhone.value : '').trim().toLowerCase();
+    const globalQ = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+    // Toggle has-val on filter inputs for clear button visibility
+    [
+        { el: filterName, val: nameQ },
+        { el: filterId, val: idQ },
+        { el: filterVillage, val: villageQ },
+        { el: filterPhone, val: phoneQ }
+    ].forEach(({ el, val }) => {
+        if (!el) return;
+        const wrap = el.closest('.filter-input-wrap');
+        if (wrap) wrap.classList.toggle('has-val', !!val);
+    });
+
+    // 1. Filter
+    let filtered = loadedPatients.filter(p => {
+        if (nameQ && !(p.name || '').toLowerCase().includes(nameQ)) return false;
+        if (idQ && !(p.patient_id || '').toLowerCase().includes(idQ)) return false;
+        if (villageQ && !(p.address || '').toLowerCase().includes(villageQ)) return false;
+        if (phoneQ && !(p.phone || '').toLowerCase().includes(phoneQ)) return false;
+        if (globalQ) {
+            const mName = (p.name || '').toLowerCase().includes(globalQ);
+            const mId = (p.patient_id || '').toLowerCase().includes(globalQ);
+            const mVillage = (p.address || '').toLowerCase().includes(globalQ);
+            const mPhone = (p.phone || '').toLowerCase().includes(globalQ);
+            if (!mName && !mId && !mVillage && !mPhone) return false;
+        }
+        return true;
+    });
+
+    // 2. Sort
+    const sortVal = sortOrderSelect ? sortOrderSelect.value : `${currentSortColumn}_${currentSortDirection}`;
+    const [col, dir] = sortVal.split('_');
+    currentSortColumn = col;
+    currentSortDirection = dir;
+
+    filtered.sort((a, b) => {
+        let cmp = 0;
+        switch (col) {
+            case 'id':
+                cmp = extractIdNum(a.patient_id) - extractIdNum(b.patient_id);
+                break;
+            case 'name':
+                cmp = (a.name || '').localeCompare(b.name || '');
+                break;
+            case 'age':
+                cmp = (Number(a.age) || 0) - (Number(b.age) || 0);
+                break;
+            case 'village':
+                cmp = (a.address || '').localeCompare(b.address || '');
+                break;
+            case 'phone':
+                cmp = (a.phone || '').localeCompare(b.phone || '');
+                break;
+            case 'visit':
+            default:
+                const dateA = new Date(a.last_visit_date || a.created_at || 0).getTime();
+                const dateB = new Date(b.last_visit_date || b.created_at || 0).getTime();
+                cmp = dateA - dateB;
+                break;
+        }
+        return dir === 'desc' ? -cmp : cmp;
+    });
+
+    updateSortIcons();
+
+    // 3. Update counter & title
+    if (resultsCount) {
+        resultsCount.textContent = `${filtered.length} Patient${filtered.length === 1 ? '' : 's'}`;
+    }
+
+    // 4. Render Table
+    renderPatientsTable(filtered);
+
+    // 5. Render Cards
+    renderPatientsCards(filtered);
+}
+
+function renderPatientsTable(patients) {
+    if (!patientsTableBody) return;
+
+    if (patients.length === 0) {
+        patientsTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem 1.5rem; color: #64748b;">
+                    <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 0.25rem;">No matching patients found</div>
+                    <div style="font-size: 0.85rem; margin-bottom: 1rem;">Try adjusting your search filters or clear your search criteria</div>
+                    <button type="button" class="btn btn-sapphire btn-sm" onclick="resetAllDirectoryFilters()">
+                        ✕ Clear All Filters
+                    </button>
+                </td>
+            </tr>`;
+        return;
+    }
+
+    patientsTableBody.innerHTML = patients.map(p => `
+        <tr class="patient-table-row ${currentPatient && currentPatient.patient_id === p.patient_id ? 'row-selected' : ''}" 
+            data-id="${p.patient_id}" 
+            onclick="loadPatient('${p.patient_id}')">
+            <td>
+                <span class="pt-id-badge">${p.patient_id}</span>
+            </td>
+            <td>
+                <div class="pt-name-cell">
+                    <div class="pt-avatar-sm" style="${getAvatarStyle(p.name)}">
+                        ${getInitials(p.name)}
+                    </div>
+                    <div>
+                        <div class="pt-name-text">${escapeHtml(p.name)}</div>
+                        <div class="pt-meta-text">Reg: ${formatVisitDate(p.created_at)}</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div style="font-weight: 700; color: #1e293b;">${p.age ? `${p.age} Yrs` : '--'}</div>
+                <div class="pt-meta-text">${p.gender || '--'}</div>
+            </td>
+            <td>
+                <div class="pt-village-cell" title="${escapeHtml(p.address || '')}">
+                    ${p.address ? `📍 ${escapeHtml(p.address)}` : '<span style="color:#94a3b8;">--</span>'}
+                </div>
+            </td>
+            <td>
+                ${p.phone ? `
+                    <a href="tel:${p.phone}" class="pt-phone-link" onclick="event.stopPropagation()">
+                        📞 ${p.phone}
+                    </a>
+                ` : '<span style="color:#94a3b8;">--</span>'}
+            </td>
+            <td>
+                <span class="pt-visit-badge">📅 ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
+            </td>
+            <td class="table-actions-cell">
+                <div class="table-actions-wrap">
+                    <button type="button" class="btn-tbl btn-tbl-view" onclick="event.stopPropagation(); loadPatient('${p.patient_id}');" title="View Patient Records">
+                        👁️ View
+                    </button>
+                    <button type="button" class="btn-tbl btn-tbl-print" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print OPD Card">
+                        🖨️ Print
+                    </button>
+                    <button type="button" class="btn-tbl btn-tbl-edit" onclick="event.stopPropagation(); openEditModal('${p.patient_id}');" title="Edit Patient Details">
+                        ✏️ Edit
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPatientsCards(patients) {
+    if (!searchResults) return;
+
+    if (patients.length === 0) {
+        searchResults.innerHTML = `
+            <div class="empty-state-vibrant" style="grid-column: 1/-1;">
+                <div class="empty-icon-circle">🔍</div>
+                <h4>No patients match your search</h4>
+                <p>Try clearing or changing your search filters.</p>
+                <button class="btn btn-sapphire btn-lg" onclick="resetAllDirectoryFilters()">
+                    ✕ Clear All Filters
+                </button>
+            </div>`;
+        return;
+    }
+
+    searchResults.innerHTML = patients.map(p => `
+        <div class="patient-card-vibrant" onclick="loadPatient('${p.patient_id}')">
+            <div class="card-top-row">
+                <div class="patient-profile">
+                    <div class="vibrant-avatar" style="${getAvatarStyle(p.name)}">
+                        ${getInitials(p.name)}
+                    </div>
+                    <div>
+                        <h4 class="patient-name">${escapeHtml(p.name)}</h4>
+                        <div class="patient-meta-badges">
+                            ${p.age ? `<span class="badge-pill badge-age">🎂 ${p.age} Yrs</span>` : ''}
+                            ${p.gender ? `<span class="badge-pill badge-gender">⚧ ${p.gender}</span>` : ''}
+                            ${p.phone ? `<span class="badge-pill badge-phone">📞 ${p.phone}</span>` : ''}
+                            <span class="badge-pill badge-date">📅 Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
+                        </div>
+                    </div>
+                </div>
+                <span class="id-badge-sharp">${p.patient_id}</span>
+            </div>
+
+            ${p.address ? `
+                <div class="card-address-row">
+                    <span class="addr-pin">📍</span>
+                    <span class="addr-text">${escapeHtml(p.address)}</span>
+                </div>
+            ` : ''}
+
+            <div class="card-actions-bar">
+                <button class="btn btn-print-quick" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print Blank Pad">
+                    🖨️ Print OPD Card
+                </button>
+                <button class="btn btn-edit-quick" onclick="event.stopPropagation(); openEditModal('${p.patient_id}');" title="Edit Patient Details">
+                    ✏️ Edit
+                </button>
+                <button class="btn btn-delete-quick" onclick="event.stopPropagation(); deletePatient('${p.patient_id}', '${(p.name || '').replace(/'/g, "\\'")}');" title="Delete Patient Record">
+                    🗑️ Delete
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
 
 // ===== Update Live Date & Time =====
 function updateDateBadge() {
@@ -114,9 +429,9 @@ async function loadStats() {
     }
 }
 
-// ===== Load & Render Patients =====
+// ===== Load & Search Patients from Server =====
 async function doSearch(forceAll = false) {
-    const q = searchInput.value.trim();
+    const q = searchInput ? searchInput.value.trim() : '';
 
     if (forceAll) {
         currentViewMode = 'all';
@@ -149,96 +464,51 @@ async function doSearch(forceAll = false) {
         }
 
         const patients = await api(url);
+        loadedPatients = patients || [];
 
-        resultsCount.textContent = `${patients.length} Patient${patients.length === 1 ? '' : 's'}`;
         if (q) {
-            resultsTitle.textContent = `Search Results for "${q}"`;
+            if (resultsTitle) resultsTitle.textContent = `Search Results for "${q}"`;
         } else if (currentViewMode === 'all') {
-            resultsTitle.textContent = `All Registered Patients`;
+            if (resultsTitle) resultsTitle.textContent = `All Registered Patients`;
         } else {
-            resultsTitle.textContent = `Recent Patients Directory`;
+            if (resultsTitle) resultsTitle.textContent = `Recent Patients Directory`;
         }
 
-        if (patients.length === 0) {
-            searchResults.innerHTML = `
-                <div class="empty-state-vibrant">
-                    <div class="empty-icon-circle">🔍</div>
-                    <h4>No patients found ${q ? `for "${q}"` : 'in database'}</h4>
-                    <p>${q ? 'Would you like to register this patient now?' : 'Register your first patient to begin.'}</p>
-                    <button class="btn btn-emerald btn-lg" onclick="openModalWithName('${(q || '').replace(/'/g, "\\'")}')">
-                        + Register ${q ? `"${q}"` : 'New Patient'}
-                    </button>
-                </div>`;
-            return;
-        }
-
-        searchResults.innerHTML = patients.map(p => `
-            <div class="patient-card-vibrant" onclick="loadPatient('${p.patient_id}')">
-                <div class="card-top-row">
-                    <div class="patient-profile">
-                        <div class="vibrant-avatar" style="${getAvatarStyle(p.name)}">
-                            ${getInitials(p.name)}
-                        </div>
-                        <div>
-                            <h4 class="patient-name">${p.name}</h4>
-                            <div class="patient-meta-badges">
-                                ${p.age ? `<span class="badge-pill badge-age">🎂 ${p.age} Yrs</span>` : ''}
-                                ${p.gender ? `<span class="badge-pill badge-gender">⚧ ${p.gender}</span>` : ''}
-                                ${p.phone ? `<span class="badge-pill badge-phone">📞 ${p.phone}</span>` : ''}
-                                <span class="badge-pill badge-date">📅 Visit: ${formatVisitDate(p.last_visit_date || p.created_at)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <span class="id-badge-sharp">${p.patient_id}</span>
-                </div>
-
-                ${p.address ? `
-                    <div class="card-address-row">
-                        <span class="addr-pin">📍</span>
-                        <span class="addr-text">${p.address}</span>
-                    </div>
-                ` : ''}
-
-                <div class="card-actions-bar">
-                    <button class="btn btn-print-quick" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print Blank Pad">
-                        🖨️ Print OPD Card
-                    </button>
-                    <button class="btn btn-edit-quick" onclick="event.stopPropagation(); openEditModal('${p.patient_id}');" title="Edit Patient Details">
-                        ✏️ Edit
-                    </button>
-                    <button class="btn btn-delete-quick" onclick="event.stopPropagation(); deletePatient('${p.patient_id}', '${(p.name || '').replace(/'/g, "\\'")}');" title="Delete Patient Record">
-                        🗑️ Delete
-                    </button>
-                </div>
-            </div>
-        `).join('');
+        applySortingAndRender();
     } catch (err) {
         showToast(err.message, true);
     }
 }
 
 function showAllPatients() {
-    searchInput.value = '';
     currentViewMode = 'all';
+    setViewLayout('table');
     doSearch(true);
     const dirEl = document.getElementById('directorySection');
     if (dirEl) dirEl.scrollIntoView({ behavior: 'smooth' });
 }
 
 function showRecentPatients() {
-    searchInput.value = '';
     currentViewMode = 'recent';
     doSearch();
 }
 
-// Instant debounced search
-searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(doSearch, 250);
-});
+// Debounced live input on global search
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            if (loadedPatients.length > 0 && currentViewMode === 'all') {
+                applySortingAndRender();
+            } else {
+                doSearch();
+            }
+        }, 200);
+    });
+    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+}
 
-searchBtn.addEventListener('click', () => doSearch());
-searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+if (searchBtn) searchBtn.addEventListener('click', () => doSearch());
 
 if (clearSearchBtn) {
     clearSearchBtn.addEventListener('click', () => {
@@ -247,6 +517,26 @@ if (clearSearchBtn) {
         doSearch();
     });
 }
+
+// Multi-field live input event listeners
+[filterName, filterId, filterVillage, filterPhone].forEach(input => {
+    if (input) {
+        input.addEventListener('input', () => {
+            if (currentViewMode !== 'all' && input.value.trim().length > 0 && loadedPatients.length <= 25) {
+                // If searching specific fields and not all patients loaded, load all for complete results
+                showAllPatients();
+            } else {
+                applySortingAndRender();
+            }
+        });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                input.value = '';
+                applySortingAndRender();
+            }
+        });
+    }
+});
 
 if (viewAllSearchBtn) viewAllSearchBtn.addEventListener('click', showAllPatients);
 if (filterAllBtn) filterAllBtn.addEventListener('click', showAllPatients);
@@ -271,6 +561,11 @@ async function loadPatient(patientId) {
         const lastVisit = data.last_visit_date || (data.prescriptions && data.prescriptions[0] ? data.prescriptions[0].created_at : data.created_at);
         const detailLastVisitEl = document.getElementById('detailLastVisit');
         if (detailLastVisitEl) detailLastVisitEl.textContent = formatVisitDate(lastVisit);
+
+        // Highlight selected row in table
+        document.querySelectorAll('.patient-table-row').forEach(row => {
+            row.classList.toggle('row-selected', row.getAttribute('data-id') === data.patient_id);
+        });
 
         // History
         const rxHistory = document.getElementById('rxHistory');

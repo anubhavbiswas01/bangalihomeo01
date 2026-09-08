@@ -133,10 +133,10 @@ router.get('/search', async (req, res) => {
             `SELECT p.*,
                     COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id OR patient_id = p.patient_id), p.created_at) AS last_visit_date
              FROM patients p
-             WHERE p.patient_id LIKE ? OR p.name LIKE ? OR p.phone LIKE ?
+             WHERE p.patient_id LIKE ? OR p.name LIKE ? OR p.phone LIKE ? OR p.address LIKE ?
              ORDER BY p.id DESC
-             LIMIT 50`,
-            [`%${q}%`, `%${q}%`, `%${q}%`]
+             LIMIT 100`,
+            [`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`]
         );
 
         res.json(patients);

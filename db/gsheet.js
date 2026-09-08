@@ -106,8 +106,9 @@ async function searchPatients(q = '', showAll = false) {
         const idMatch = p.patient_id && p.patient_id.toLowerCase().includes(query);
         const nameMatch = p.name && p.name.toLowerCase().includes(query);
         const phoneMatch = p.phone && p.phone.toLowerCase().includes(query);
-        return idMatch || nameMatch || phoneMatch;
-    }).slice(0, 50);
+        const addressMatch = p.address && p.address.toLowerCase().includes(query);
+        return idMatch || nameMatch || phoneMatch || addressMatch;
+    }).slice(0, 100);
 }
 
 async function getStats() {
