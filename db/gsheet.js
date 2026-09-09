@@ -25,18 +25,25 @@ function getUrl() {
     return '';
 }
 
-// Local cache to keep dashboard and search fast
+// High-speed in-memory cache to make Google Sheets instant
 let cache = {
     patients: null,
     stats: null,
+    patientDetails: {},
     lastFetched: 0
 };
-const CACHE_TTL_MS = 10000; // 10 seconds
+const CACHE_TTL_MS = 60000; // 60 seconds (1 minute)
+
+let pendingPatientsPromise = null;
+let pendingDetailPromises = {};
 
 function invalidateCache() {
     cache.patients = null;
     cache.stats = null;
+    cache.patientDetails = {};
     cache.lastFetched = 0;
+    pendingPatientsPromise = null;
+    pendingDetailPromises = {};
 }
 
 function isConfigured() {
@@ -81,17 +88,31 @@ async function request(action, params = {}, method = 'GET', body = null) {
     return data;
 }
 
-// ── Patient Operations ──
+// ── Patient Operations with Promise Deduplication ──
 
 async function getAllPatients() {
     const now = Date.now();
     if (cache.patients && (now - cache.lastFetched) < CACHE_TTL_MS) {
         return cache.patients;
     }
-    const patients = await request('get_all');
-    cache.patients = patients;
-    cache.lastFetched = now;
-    return patients;
+
+    // Deduplicate in-flight requests (e.g. simultaneous dashboard load & stats calls)
+    if (pendingPatientsPromise) {
+        return pendingPatientsPromise;
+    }
+
+    pendingPatientsPromise = (async () => {
+        try {
+            const patients = await request('get_all');
+            cache.patients = Array.isArray(patients) ? patients : [];
+            cache.lastFetched = Date.now();
+            return cache.patients;
+        } finally {
+            pendingPatientsPromise = null;
+        }
+    })();
+
+    return pendingPatientsPromise;
 }
 
 async function searchPatients(q = '', showAll = false) {
@@ -111,31 +132,73 @@ async function searchPatients(q = '', showAll = false) {
     }).slice(0, 100);
 }
 
+// High-speed stats derived directly from cached patients list (0 extra roundtrips!)
 async function getStats() {
-    const now = Date.now();
-    if (cache.stats && (now - cache.lastFetched) < CACHE_TTL_MS) {
-        return cache.stats;
+    const all = await getAllPatients();
+    const todayStr = new Date().toDateString();
+    let todayCount = 0;
+    let rxCount = 0;
+
+    for (const pt of all) {
+        if (pt.created_at) {
+            try {
+                if (new Date(pt.created_at).toDateString() === todayStr) todayCount++;
+            } catch (e) {}
+        }
+        if (Array.isArray(pt.prescriptions)) {
+            rxCount += pt.prescriptions.length;
+        } else if (pt.last_visit_date && pt.last_visit_date !== pt.created_at) {
+            rxCount++;
+        }
     }
-    const stats = await request('stats');
-    cache.stats = stats;
-    return stats;
+
+    return {
+        totalPatients: all.length,
+        totalPrescriptions: rxCount,
+        todayPatients: todayCount
+    };
 }
 
 async function getPatientById(id) {
-    const patient = await request('get_patient', { id });
-    if (patient && Array.isArray(patient.prescriptions)) {
-        for (const rx of patient.prescriptions) {
-            if (!rx.medicines || rx.medicines.length === 0) {
-                try {
-                    const fullRx = await getPrescriptionById(rx.rx_id);
-                    if (fullRx && Array.isArray(fullRx.medicines)) {
-                        rx.medicines = fullRx.medicines;
-                    }
-                } catch (e) {}
-            }
-        }
+    const strId = String(id);
+    const now = Date.now();
+    const cachedEntry = cache.patientDetails[strId];
+    if (cachedEntry && (now - cachedEntry.time) < CACHE_TTL_MS) {
+        return cachedEntry.data;
     }
-    return patient;
+
+    if (pendingDetailPromises[strId]) {
+        return pendingDetailPromises[strId];
+    }
+
+    pendingDetailPromises[strId] = (async () => {
+        try {
+            const patient = await request('get_patient', { id });
+            if (patient && Array.isArray(patient.prescriptions)) {
+                for (const rx of patient.prescriptions) {
+                    if (!rx.medicines || rx.medicines.length === 0) {
+                        try {
+                            const fullRx = await getPrescriptionById(rx.rx_id);
+                            if (fullRx && Array.isArray(fullRx.medicines)) {
+                                rx.medicines = fullRx.medicines;
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+            if (patient && !patient.error) {
+                cache.patientDetails[strId] = { data: patient, time: Date.now() };
+                if (patient.patient_id && patient.patient_id !== strId) {
+                    cache.patientDetails[String(patient.patient_id)] = { data: patient, time: Date.now() };
+                }
+            }
+            return patient;
+        } finally {
+            delete pendingDetailPromises[strId];
+        }
+    })();
+
+    return pendingDetailPromises[strId];
 }
 
 async function createPatient(data) {

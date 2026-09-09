@@ -59,6 +59,17 @@ function setupSheets(ss) {
   return { pSheet: pSheet, rxSheet: rxSheet, medSheet: medSheet };
 }
 
+function getSheetsFast(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  var pSheet = ss.getSheetByName('Patients');
+  var rxSheet = ss.getSheetByName('Prescriptions');
+  var medSheet = ss.getSheetByName('Medicines');
+  if (!pSheet || !rxSheet || !medSheet) {
+    return setupSheets(ss);
+  }
+  return { pSheet: pSheet, rxSheet: rxSheet, medSheet: medSheet };
+}
+
 function jsonResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
@@ -109,14 +120,25 @@ function getPatientsData(sheets) {
 
 function doGet(e) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheets = setupSheets(ss);
     var p = e.parameter || {};
     var action = p.action || 'get_all';
 
+    var scriptCache = CacheService.getScriptCache();
+    if (action === 'get_all') {
+      var cached = scriptCache.get('all_patients_json');
+      if (cached) {
+        return ContentService.createTextOutput(cached).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheets = getSheetsFast(ss);
+
     if (action === 'get_all') {
       var allPatients = getPatientsData(sheets);
-      return jsonResponse(allPatients);
+      var jsonStr = JSON.stringify(allPatients);
+      try { scriptCache.put('all_patients_json', jsonStr, 120); } catch (e) {}
+      return ContentService.createTextOutput(jsonStr).setMimeType(ContentService.MimeType.JSON);
     }
 
     if (action === 'search') {
@@ -270,8 +292,9 @@ function doGet(e) {
 
 function doPost(e) {
   try {
+    try { CacheService.getScriptCache().remove('all_patients_json'); } catch (_) {}
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheets = setupSheets(ss);
+    var sheets = getSheetsFast(ss);
     var body = {};
     if (e.postData && e.postData.contents) {
       body = JSON.parse(e.postData.contents);

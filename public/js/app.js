@@ -417,25 +417,52 @@ function updateDateBadge() {
     el.textContent = now.toLocaleDateString('en-IN', options);
 }
 
+// ===== Compute & Update Stats from Patient Array in 0ms =====
+function updateStatsFromList(list) {
+    if (!Array.isArray(list)) return;
+    const todayStr = new Date().toDateString();
+    let todayCount = 0;
+    let rxCount = 0;
+    list.forEach(p => {
+        if (p.created_at) {
+            try {
+                if (new Date(p.created_at).toDateString() === todayStr) todayCount++;
+            } catch (e) {}
+        }
+        if (Array.isArray(p.prescriptions)) {
+            rxCount += p.prescriptions.length;
+        } else if (p.last_visit_date && p.last_visit_date !== p.created_at) {
+            rxCount++;
+        }
+    });
+
+    const statPts = document.getElementById('statPatients');
+    const statRx = document.getElementById('statPrescriptions');
+    const statToday = document.getElementById('statToday');
+    if (statPts) statPts.textContent = list.length;
+    if (statRx) statRx.textContent = rxCount;
+    if (statToday) statToday.textContent = todayCount;
+}
+
 // ===== Load Stats =====
 async function loadStats() {
+    if (loadedPatients.length > 0) {
+        updateStatsFromList(loadedPatients);
+        return;
+    }
     try {
         const stats = await api('/api/patients/stats');
         document.getElementById('statPatients').textContent = stats.totalPatients || 0;
         document.getElementById('statPrescriptions').textContent = stats.totalPrescriptions || 0;
         document.getElementById('statToday').textContent = stats.todayPatients || 0;
-    } catch (e) {
-        // quiet fallback
-    }
+    } catch (e) {}
 }
 
-// ===== Load & Search Patients from Server =====
-async function doSearch(forceAll = false) {
+// ===== Load & Search Patients (Instant Local Filter + Background Sync) =====
+async function doSearch(forceRemote = false) {
     const q = searchInput ? searchInput.value.trim() : '';
 
-    if (forceAll) {
-        currentViewMode = 'all';
-    } else if (q) {
+    if (q) {
         currentViewMode = 'search';
     }
 
@@ -453,18 +480,27 @@ async function doSearch(forceAll = false) {
         }
     }
 
-    try {
-        let url;
+    // FAST-PATH: Filter and sort in browser RAM (0ms latency!)
+    if (!forceRemote && loadedPatients.length > 0) {
         if (q) {
-            url = `/api/patients/search?q=${encodeURIComponent(q)}`;
+            if (resultsTitle) resultsTitle.textContent = `Search Results for "${q}"`;
         } else if (currentViewMode === 'all') {
-            url = `/api/patients?all=true`;
+            if (resultsTitle) resultsTitle.textContent = `All Registered Patients`;
         } else {
-            url = `/api/patients/search`;
+            if (resultsTitle) resultsTitle.textContent = `Recent Patients Directory`;
         }
+        applySortingAndRender();
+        return;
+    }
 
-        const patients = await api(url);
-        loadedPatients = patients || [];
+    try {
+        const patients = await api('/api/patients?all=true');
+        loadedPatients = Array.isArray(patients) ? patients : [];
+        try {
+            localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients));
+        } catch (e) {}
+
+        updateStatsFromList(loadedPatients);
 
         if (q) {
             if (resultsTitle) resultsTitle.textContent = `Search Results for "${q}"`;
@@ -735,10 +771,13 @@ patientForm.addEventListener('submit', async e => {
         closeModal();
         patientForm.reset();
 
-        // Refresh stats and directory
-        loadStats();
-        await loadPatient(patient.patient_id);
-        await doSearch();
+        // Immediately update memory and localStorage cache (0ms!)
+        loadedPatients.unshift(patient);
+        try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (err) {}
+        updateStatsFromList(loadedPatients);
+        applySortingAndRender();
+
+        loadPatient(patient.patient_id);
     } catch (err) {
         showToast(err.message, true);
     }
@@ -802,15 +841,19 @@ if (editPatientForm) {
                 body: JSON.stringify(body)
             });
 
-            showToast(`✓ Patient ${updated.patient_id} (${updated.name}) details updated!`);
+            showToast(`✓ Patient ${updated.patient_id || patientId} details updated!`);
             closeEditModal();
 
-            // Refresh current patient view if active
-            if (currentPatient && currentPatient.patient_id === updated.patient_id) {
-                await loadPatient(updated.patient_id);
+            // Immediately update patient in memory (0ms!)
+            const idx = loadedPatients.findIndex(p => p.patient_id === patientId || String(p.id) === String(patientId));
+            if (idx !== -1) {
+                loadedPatients[idx] = { ...loadedPatients[idx], ...body };
+                try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (err) {}
+                applySortingAndRender();
             }
-            // Refresh directory list
-            await doSearch();
+
+            // Refresh current patient view if active
+            loadPatient(patientId);
         } catch (err) {
             showToast(err.message, true);
         }
@@ -831,8 +874,11 @@ async function deletePatient(patientId, patientName) {
             currentPatient = null;
         }
 
-        loadStats();
-        await doSearch();
+        // Immediately remove from memory (0ms!)
+        loadedPatients = loadedPatients.filter(p => p.patient_id !== patientId && String(p.id) !== String(patientId));
+        try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (err) {}
+        updateStatsFromList(loadedPatients);
+        applySortingAndRender();
     } catch (err) {
         showToast(err.message, true);
     }
@@ -1016,12 +1062,21 @@ async function handleSavePrescription(event) {
         showToast(`✓ Prescription ${newRx.rx_id} saved successfully!`);
         closeAddRxModal();
 
-        // Refresh current patient details and history
+        // Update in-memory patient & cache immediately (0ms!)
         if (currentPatient) {
-            await loadPatient(currentPatient.patient_id);
+            currentPatient.last_visit_date = newRx.created_at || new Date().toISOString();
+            if (!currentPatient.prescriptions) currentPatient.prescriptions = [];
+            currentPatient.prescriptions.unshift(newRx);
+
+            const idx = loadedPatients.findIndex(p => p.patient_id === currentPatient.patient_id || String(p.id) === String(currentPatient.id));
+            if (idx !== -1) {
+                loadedPatients[idx].last_visit_date = currentPatient.last_visit_date;
+                try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (e) {}
+                applySortingAndRender();
+            }
+            loadPatient(currentPatient.patient_id);
         }
-        loadStats();
-        doSearch();
+        updateStatsFromList(loadedPatients);
     } catch (err) {
         showToast(err.message, true);
     } finally {
@@ -1044,6 +1099,21 @@ async function handleSaveAndPrintPrescription(event) {
         const newRx = await savePrescriptionData();
         showToast(`✓ Prescription ${newRx.rx_id} saved! Opening OPD slip...`);
         closeAddRxModal();
+
+        // Update in-memory patient & cache immediately (0ms!)
+        if (currentPatient) {
+            currentPatient.last_visit_date = newRx.created_at || new Date().toISOString();
+            if (!currentPatient.prescriptions) currentPatient.prescriptions = [];
+            currentPatient.prescriptions.unshift(newRx);
+
+            const idx = loadedPatients.findIndex(p => p.patient_id === currentPatient.patient_id || String(p.id) === String(currentPatient.id));
+            if (idx !== -1) {
+                loadedPatients[idx].last_visit_date = currentPatient.last_visit_date;
+                try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (e) {}
+                applySortingAndRender();
+            }
+        }
+        updateStatsFromList(loadedPatients);
 
         // Extract medicines for immediate print display
         const medicineRows = document.querySelectorAll('#medicinesListContainer .medicine-row-card');
@@ -1077,12 +1147,9 @@ async function handleSaveAndPrintPrescription(event) {
         // Open print slip in new tab with token query fallback
         window.open(`/print.html?rx=${encodeURIComponent(newRx.rx_id)}&token=${encodeURIComponent(token)}`, '_blank');
 
-        // Refresh current patient details
         if (currentPatient) {
-            await loadPatient(currentPatient.patient_id);
+            loadPatient(currentPatient.patient_id);
         }
-        loadStats();
-        doSearch();
     } catch (err) {
         showToast(err.message, true);
     } finally {
@@ -1229,6 +1296,19 @@ async function initAuthAndApp() {
         return;
     }
 
+    // 1. Instant 0ms render from browser localStorage cache
+    try {
+        const cachedRaw = localStorage.getItem('clinic_cached_patients');
+        if (cachedRaw) {
+            const cachedList = JSON.parse(cachedRaw);
+            if (Array.isArray(cachedList) && cachedList.length > 0) {
+                loadedPatients = cachedList;
+                applySortingAndRender();
+                updateStatsFromList(cachedList);
+            }
+        }
+    } catch (e) {}
+
     try {
         const res = await fetch('/api/auth/verify', {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -1239,13 +1319,12 @@ async function initAuthAndApp() {
             return;
         }
         hideLockScreen();
-        loadStats();
-        doSearch();
+        // 2. Fetch fresh updates from server in background
+        doSearch(true);
     } catch {
         // In case of temporary offline/network hiccup, proceed if token is cached
         hideLockScreen();
-        loadStats();
-        doSearch();
+        doSearch(true);
     }
 }
 
