@@ -54,7 +54,12 @@ router.post('/', async (req, res) => {
                 medicines: medList,
                 previous_visit_date: prevDate
             });
-            return res.status(201).json(newRx);
+            return res.status(201).json({
+                ...newRx,
+                patient_code: ptCode || patient_id,
+                medicines: medList,
+                previous_visit_date: prevDate
+            });
         }
         const rxId = await nextRxId();
         const nowIso = new Date().toISOString();
@@ -110,6 +115,18 @@ router.get('/:rxId', async (req, res) => {
             const rx = await gsheet.getPrescriptionById(req.params.rxId);
             if (!rx || rx.error) {
                 return res.status(404).json({ error: 'Prescription not found.' });
+            }
+            // If previous_visit_date was not calculated by gsheet, resolve it from patient's prescriptions
+            if (!rx.previous_visit_date && (rx.patient_code || rx.patient_id)) {
+                try {
+                    const pt = await gsheet.getPatientById(rx.patient_code || rx.patient_id);
+                    if (pt && Array.isArray(pt.prescriptions)) {
+                        const older = pt.prescriptions.filter(p => new Date(p.created_at) < new Date(rx.created_at));
+                        if (older.length > 0) {
+                            rx.previous_visit_date = older[0].created_at;
+                        }
+                    }
+                } catch (e) {}
             }
             return res.json(rx);
         }

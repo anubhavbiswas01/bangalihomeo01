@@ -338,7 +338,7 @@ function renderPatientsTable(patients) {
                     <button type="button" class="btn-tbl btn-tbl-view" onclick="event.stopPropagation(); loadPatient('${p.patient_id}');" title="View Patient Records">
                         👁️ View
                     </button>
-                    <button type="button" class="btn-tbl btn-tbl-print" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print OPD Card">
+                    <button type="button" class="btn-tbl btn-tbl-print" onclick="event.stopPropagation(); openPatientPrintSlip('${p.patient_id}');" title="Print OPD Card">
                         🖨️ Print
                     </button>
                     <button type="button" class="btn-tbl btn-tbl-edit" onclick="event.stopPropagation(); openEditModal('${p.patient_id}');" title="Edit Patient Details">
@@ -394,7 +394,7 @@ function renderPatientsCards(patients) {
             ` : ''}
 
             <div class="card-actions-bar">
-                <button class="btn btn-print-quick" onclick="event.stopPropagation(); window.open('/print.html?patientId=${p.patient_id}', '_blank');" title="Print Blank Pad">
+                <button class="btn btn-print-quick" onclick="event.stopPropagation(); openPatientPrintSlip('${p.patient_id}');" title="Print Blank Pad">
                     🖨️ Print OPD Card
                 </button>
                 <button class="btn btn-edit-quick" onclick="event.stopPropagation(); openEditModal('${p.patient_id}');" title="Edit Patient Details">
@@ -578,7 +578,7 @@ async function loadPatient(patientId) {
                             <span class="rx-date-pill">📅 Visit: ${formatVisitDate(rx.created_at)}</span>
                             ${rx.previous_visit_date ? `<span class="rx-prev-pill">⏮️ Last Visit: ${formatVisitDate(rx.previous_visit_date)}</span>` : ''}
                         </div>
-                        <button class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.open('/print.html?rx=${rx.rx_id}', '_blank')">
+                        <button class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); openRxPrintSlip('${rx.rx_id}')">
                             🖨️ Print Slip
                         </button>
                     </div>
@@ -641,11 +641,60 @@ async function loadPatient(patientId) {
     }
 }
 
+// ===== Print OPD & Prescription Helpers (Instant Local Cache + Network Token) =====
+function openPatientPrintSlip(patientId) {
+    const pt = (currentPatient && (currentPatient.patient_id === patientId || String(currentPatient.id) === String(patientId)))
+        ? currentPatient
+        : (loadedPatients.find(p => p.patient_id === patientId || String(p.id) === String(patientId)) || currentPatient);
+
+    const token = localStorage.getItem('clinic_auth_token') || '';
+    if (pt) {
+        localStorage.setItem('clinic_print_data', JSON.stringify({
+            patient: pt,
+            rx: null,
+            timestamp: Date.now()
+        }));
+    }
+    const targetId = (pt && pt.patient_id) || patientId;
+    window.open(`/print.html?patientId=${encodeURIComponent(targetId)}&token=${encodeURIComponent(token)}`, '_blank');
+}
+
+function openRxPrintSlip(rxId) {
+    const token = localStorage.getItem('clinic_auth_token') || '';
+    let foundRx = null;
+    if (currentPatient && Array.isArray(currentPatient.prescriptions)) {
+        foundRx = currentPatient.prescriptions.find(r => r.rx_id === rxId || String(r.id) === String(rxId));
+    }
+    if (currentPatient && foundRx) {
+        // Calculate prior visit before this rx
+        const older = currentPatient.prescriptions.filter(r => new Date(r.created_at) < new Date(foundRx.created_at));
+        const prevVisitDate = older.length > 0 ? older[0].created_at : null;
+
+        localStorage.setItem('clinic_print_data', JSON.stringify({
+            patient: currentPatient,
+            rx: {
+                ...foundRx,
+                name: currentPatient.name,
+                patient_code: currentPatient.patient_id,
+                age: currentPatient.age,
+                gender: currentPatient.gender,
+                phone: currentPatient.phone,
+                address: currentPatient.address,
+                previous_visit_date: foundRx.previous_visit_date || prevVisitDate
+            },
+            timestamp: Date.now()
+        }));
+    }
+    window.open(`/print.html?rx=${encodeURIComponent(rxId)}&token=${encodeURIComponent(token)}`, '_blank');
+}
+
 // ===== Action Buttons =====
 if (printBlankPadBtn) {
     printBlankPadBtn.addEventListener('click', () => {
         if (currentPatient) {
-            window.open(`/print.html?patientId=${currentPatient.patient_id}`, '_blank');
+            openPatientPrintSlip(currentPatient.patient_id);
+        } else {
+            window.open('/print.html?mode=blank', '_blank');
         }
     });
 }
@@ -996,8 +1045,37 @@ async function handleSaveAndPrintPrescription(event) {
         showToast(`✓ Prescription ${newRx.rx_id} saved! Opening OPD slip...`);
         closeAddRxModal();
 
-        // Open print slip in new tab
-        window.open(`/print.html?rx=${newRx.rx_id}`, '_blank');
+        // Extract medicines for immediate print display
+        const medicineRows = document.querySelectorAll('#medicinesListContainer .medicine-row-card');
+        const meds = [];
+        medicineRows.forEach(row => {
+            const name = row.querySelector('.med-input-name')?.value.trim() || '';
+            const dosage = row.querySelector('.med-input-dosage')?.value.trim() || '';
+            const frequency = row.querySelector('.med-input-frequency')?.value.trim() || '';
+            const duration = row.querySelector('.med-input-duration')?.value.trim() || '';
+            if (name) meds.push({ medicine_name: name, dosage, frequency, duration });
+        });
+        const prevVisitDate = document.getElementById('rxPreviousVisitDate')?.value || null;
+
+        const token = localStorage.getItem('clinic_auth_token') || '';
+        localStorage.setItem('clinic_print_data', JSON.stringify({
+            patient: currentPatient,
+            rx: {
+                ...newRx,
+                medicines: (newRx.medicines && newRx.medicines.length > 0) ? newRx.medicines : meds,
+                name: currentPatient ? currentPatient.name : '',
+                patient_code: currentPatient ? currentPatient.patient_id : '',
+                age: currentPatient ? currentPatient.age : '',
+                gender: currentPatient ? currentPatient.gender : '',
+                phone: currentPatient ? currentPatient.phone : '',
+                address: currentPatient ? currentPatient.address : '',
+                previous_visit_date: prevVisitDate
+            },
+            timestamp: Date.now()
+        }));
+
+        // Open print slip in new tab with token query fallback
+        window.open(`/print.html?rx=${encodeURIComponent(newRx.rx_id)}&token=${encodeURIComponent(token)}`, '_blank');
 
         // Refresh current patient details
         if (currentPatient) {

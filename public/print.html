@@ -70,6 +70,46 @@
             background: rgba(255,255,255,0.25);
         }
 
+        .btn-blank {
+            background: #d97706;
+            color: white;
+        }
+
+        .btn-blank:hover {
+            background: #b45309;
+        }
+
+        .patient-picker-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .print-patient-select {
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.825rem;
+            font-weight: 600;
+            outline: none;
+            max-width: 240px;
+            cursor: pointer;
+        }
+
+        /* Blank Pad Pen-Writing Lines */
+        .blank-line {
+            display: inline-block;
+            border-bottom: 1px dashed #666;
+            min-height: 14px;
+            vertical-align: middle;
+        }
+        .blank-line-sm { min-width: 60px; }
+        .blank-line-md { min-width: 120px; }
+        .blank-line-lg { min-width: 220px; }
+        .blank-line-full { width: 100%; min-width: 100%; }
+
         /* ── Sheet Container ── */
         .opd-page {
             max-width: 820px;
@@ -351,6 +391,15 @@
         <button class="btn btn-print" onclick="window.print()">
             🖨️ Print Prescription
         </button>
+        <div class="patient-picker-wrap">
+            <span style="font-size: 11px; opacity: 0.85;">Patient:</span>
+            <select id="quickPatientPicker" class="print-patient-select" onchange="onPatientSelectChange(this.value)">
+                <option value="">-- Choose Patient --</option>
+            </select>
+        </div>
+        <button class="btn btn-blank" id="blankToggleBtn" onclick="toggleBlankPadMode()">
+            📝 Blank Pen Pad
+        </button>
         <button class="btn btn-back" onclick="window.location='/'">
             ← Back to Dashboard
         </button>
@@ -358,6 +407,11 @@
 
     <!-- ─── Prescription / OPD Slip ─── -->
     <div class="opd-page" id="opdCard">
+
+        <!-- Optional Loading Indicator -->
+        <div id="opdLoadingMsg" style="display:none; text-align:center; padding: 10px; font-weight: 600; color: #1a5276; background: #e0f2fe; border-radius: 4px; margin-bottom: 10px;">
+            ⏳ Loading Patient & Prescription Details...
+        </div>
 
         <!-- ── Centered Clinic Header ── -->
         <div class="clinic-header">
@@ -374,15 +428,15 @@
             <div class="patient-grid-row">
                 <div class="patient-field underline-title">
                     <span class="f-label">Name :</span>
-                    <span class="f-val bold" id="pName">--</span>
+                    <span class="f-val bold" id="pName"></span>
                 </div>
                 <div class="patient-field">
                     <span class="f-label">Age :</span>
-                    <span class="f-val" id="pAge">--</span>
+                    <span class="f-val" id="pAge"></span>
                 </div>
                 <div class="patient-field">
                     <span class="f-label">Gender :</span>
-                    <span class="f-val" id="pGender">--</span>
+                    <span class="f-val" id="pGender"></span>
                 </div>
             </div>
 
@@ -390,19 +444,19 @@
             <div class="patient-grid-row patient-grid-row-4">
                 <div class="patient-field">
                     <span class="f-label">Mobile No :</span>
-                    <span class="f-val" id="pMobile">--</span>
+                    <span class="f-val" id="pMobile"></span>
                 </div>
                 <div class="patient-field">
                     <span class="f-label">Visit Date :</span>
-                    <span class="f-val" id="pVisitDate">--</span>
+                    <span class="f-val" id="pVisitDate"></span>
                 </div>
                 <div class="patient-field">
                     <span class="f-label">Last Visit :</span>
-                    <span class="f-val" id="pLastVisitDate">--</span>
+                    <span class="f-val" id="pLastVisitDate"></span>
                 </div>
                 <div class="patient-field underline-title">
                     <span class="f-label">Patient ID :</span>
-                    <span class="f-val bold" id="pUniqueId">--</span>
+                    <span class="f-val bold" id="pUniqueId"></span>
                 </div>
             </div>
 
