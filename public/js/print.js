@@ -47,7 +47,6 @@ async function loadPrescription() {
     // 2. If explicit mode=blank requested and no cache was loaded
     if (mode === 'blank' && !renderedFromCache) {
         renderBlankPenPad();
-        loadPatientsDropdown(token);
         return;
     }
 
@@ -97,7 +96,6 @@ async function loadPrescription() {
         }
     } finally {
         if (loadingEl) loadingEl.style.display = 'none';
-        loadPatientsDropdown(token);
     }
 }
 
@@ -279,56 +277,6 @@ function toggleBlankPadMode() {
         }
     } else {
         renderBlankPenPad();
-    }
-}
-
-// ── Populate Quick Patient Selector in Top Bar ──
-async function loadPatientsDropdown(token) {
-    const picker = document.getElementById('quickPatientPicker');
-    if (!picker) return;
-
-    try {
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        const res = await fetch('/api/patients/search?all=true', { headers });
-        if (!res.ok) return;
-        const patients = await res.json();
-        if (!Array.isArray(patients) || patients.length === 0) return;
-
-        picker.innerHTML = '<option value="">-- Choose Patient --</option>' +
-            patients.map(p => {
-                const isSelected = currentLoadedPatient && (currentLoadedPatient.patient_id === p.patient_id || String(currentLoadedPatient.id) === String(p.id));
-                return `<option value="${p.patient_id}" ${isSelected ? 'selected' : ''}>${escapeHtml(p.name)} (${p.patient_id})</option>`;
-            }).join('');
-    } catch (e) {
-        // Ignore if unable to fetch dropdown list
-    }
-}
-
-async function onPatientSelectChange(patientId) {
-    if (!patientId) return;
-    const token = (typeof localStorage !== 'undefined' && localStorage.getItem('clinic_auth_token')) || '';
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-    const loadingEl = document.getElementById('opdLoadingMsg');
-    if (loadingEl) loadingEl.style.display = 'block';
-
-    try {
-        const res = await fetch(`/api/patients/${encodeURIComponent(patientId)}`, { headers });
-        if (res.ok) {
-            const pt = await res.json();
-            currentLoadedPatient = pt;
-            currentLoadedRx = null;
-            renderPrescription(pt, null, false);
-
-            // Update URL without full reload
-            if (window.history && window.history.replaceState) {
-                window.history.replaceState(null, '', `/print.html?patientId=${encodeURIComponent(pt.patient_id)}`);
-            }
-        }
-    } catch (e) {
-        console.error('Error switching patient:', e);
-    } finally {
-        if (loadingEl) loadingEl.style.display = 'none';
     }
 }
 
