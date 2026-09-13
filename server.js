@@ -40,8 +40,14 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/patients', requireAuth, require('./routes/patients'));
 app.use('/api/prescriptions', requireAuth, require('./routes/prescriptions'));
 app.use('/api/medicines', requireAuth, require('./routes/medicines'));
+app.use('/api/appointments', require('./routes/appointments'));
 
-// Fallback — serve index.html
+// Admin / Doctor Portal routes
+app.get(['/admin', '/admin.html', '/doctor', '/doctor.html'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Fallback — serve public patient home page (index.html)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

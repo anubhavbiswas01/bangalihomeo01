@@ -91,6 +91,13 @@ async function initIndexes(db) {
         await prescriptions.createIndex({ patient_id: 1 });
         await prescriptions.createIndex({ created_at: -1 });
 
+        const appointments = db.collection('appointments');
+        await appointments.createIndex({ reference_no: 1 }, { unique: true });
+        await appointments.createIndex({ preferred_date: 1 });
+        await appointments.createIndex({ mobile: 1 });
+        await appointments.createIndex({ status: 1 });
+        await appointments.createIndex({ created_at: -1 });
+
         indexesInitialized = true;
     } catch (e) {
         console.warn('MongoDB index initialization warning:', e.message);
@@ -602,6 +609,141 @@ async function deleteMedicine(name) {
     return result.deletedCount > 0;
 }
 
+// ── Appointment Management ──
+
+function getTodayISTString() {
+    const d = new Date();
+    // Convert to IST (UTC + 5:30)
+    const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+    const year = istTime.getUTCFullYear();
+    const month = String(istTime.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(istTime.getUTCDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+}
+
+async function getNextAppointmentRef() {
+    const db = await connect();
+    const today = getTodayISTString();
+    const prefix = `BHC-${today}-`;
+
+    const last = await db.collection('appointments')
+        .find({ reference_no: { $regex: `^${prefix}` } })
+        .sort({ reference_no: -1 })
+        .limit(1)
+        .project({ reference_no: 1 })
+        .toArray();
+
+    let seq = 1;
+    if (last.length > 0 && last[0].reference_no) {
+        const parts = last[0].reference_no.split('-');
+        const lastNum = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(lastNum)) {
+            seq = lastNum + 1;
+        }
+    }
+    return `${prefix}${String(seq).padStart(3, '0')}`;
+}
+
+async function createAppointment(data) {
+    const db = await connect();
+    let refNo = await getNextAppointmentRef();
+
+    // Prevent rare collisions
+    let exists = await db.collection('appointments').findOne({ reference_no: refNo });
+    let attempts = 0;
+    while (exists && attempts < 10) {
+        const parts = refNo.split('-');
+        const num = parseInt(parts[2], 10) + 1;
+        refNo = `${parts[0]}-${parts[1]}-${String(num).padStart(3, '0')}`;
+        exists = await db.collection('appointments').findOne({ reference_no: refNo });
+        attempts++;
+    }
+
+    const appointment = {
+        reference_no: refNo,
+        name: data.name.trim(),
+        age: parseInt(data.age, 10),
+        gender: data.gender,
+        mobile: String(data.mobile).trim(),
+        preferred_date: data.preferred_date,
+        reason: data.reason.trim(),
+        status: 'Pending',
+        notes: data.notes ? data.notes.trim() : '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    };
+
+    await db.collection('appointments').insertOne({ ...appointment });
+    delete appointment._id;
+    return appointment;
+}
+
+async function getAllAppointments(query = {}) {
+    const db = await connect();
+    const filter = {};
+
+    if (query.status && query.status !== 'all') {
+        filter.status = query.status;
+    }
+    if (query.date) {
+        filter.preferred_date = query.date;
+    }
+    if (query.q && query.q.trim()) {
+        const term = query.q.trim();
+        filter.$or = [
+            { reference_no: { $regex: term, $options: 'i' } },
+            { name: { $regex: term, $options: 'i' } },
+            { mobile: { $regex: term, $options: 'i' } }
+        ];
+    }
+
+    const list = await db.collection('appointments')
+        .find(filter)
+        .sort({ created_at: -1 })
+        .toArray();
+
+    return list.map(item => {
+        delete item._id;
+        return item;
+    });
+}
+
+async function getAppointmentByRef(reference_no) {
+    const db = await connect();
+    const item = await db.collection('appointments').findOne({ reference_no: reference_no.trim() });
+    if (item) delete item._id;
+    return item;
+}
+
+async function updateAppointmentStatus(reference_no, status, notes = null) {
+    const db = await connect();
+    const update = {
+        $set: {
+            status: status,
+            updated_at: new Date().toISOString()
+        }
+    };
+    if (notes !== null) {
+        update.$set.notes = notes;
+    }
+    const result = await db.collection('appointments').findOneAndUpdate(
+        { reference_no: reference_no.trim() },
+        update,
+        { returnDocument: 'after' }
+    );
+    if (result && result.value) {
+        delete result.value._id;
+        return result.value;
+    }
+    return getAppointmentByRef(reference_no);
+}
+
+async function deleteAppointment(reference_no) {
+    const db = await connect();
+    const result = await db.collection('appointments').deleteOne({ reference_no: reference_no.trim() });
+    return result.deletedCount > 0;
+}
+
 module.exports = {
     isConfigured,
     connect,
@@ -621,5 +763,11 @@ module.exports = {
     addMedicine,
     deleteMedicine,
     seedDefaultMedicines,
-    DEFAULT_MEDICINES
+    DEFAULT_MEDICINES,
+    getNextAppointmentRef,
+    createAppointment,
+    getAllAppointments,
+    getAppointmentByRef,
+    updateAppointmentStatus,
+    deleteAppointment
 };

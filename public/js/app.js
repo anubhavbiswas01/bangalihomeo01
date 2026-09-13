@@ -1460,6 +1460,259 @@ function backspacePin() {
     doctorPinInput.focus();
 }
 
+// ── Appointments Management ──
+let cachedAppointments = [];
+let activeApptStatusFilter = 'all';
+
+async function loadAppointments(showRefreshToast = false) {
+    const token = localStorage.getItem('clinic_auth_token');
+    if (!token) return;
+
+    try {
+        const res = await fetch('/api/appointments', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        cachedAppointments = await res.json();
+        updateAppointmentsBadgeAndStats();
+        renderAppointmentsTable();
+        if (showRefreshToast) {
+            showToast('✓ Appointments refreshed');
+        }
+    } catch (err) {
+        console.error('Failed to load appointments:', err);
+    }
+}
+
+function updateAppointmentsBadgeAndStats() {
+    const pendingCount = cachedAppointments.filter(a => a.status === 'Pending').length;
+    const navBadge = document.getElementById('navAppointmentCount');
+    if (navBadge) navBadge.textContent = pendingCount;
+
+    const statCount = document.getElementById('statAppointmentsCount');
+    if (statCount) statCount.textContent = cachedAppointments.length;
+
+    const statPending = document.getElementById('statAppointmentsPending');
+    if (statPending) statPending.textContent = pendingCount;
+}
+
+function openAppointmentsModal() {
+    const modal = document.getElementById('appointmentsManagerModal');
+    if (modal) modal.classList.add('active');
+    loadAppointments();
+    const searchInput = document.getElementById('apptSearchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+}
+
+function closeAppointmentsModal() {
+    const modal = document.getElementById('appointmentsManagerModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function setApptStatusFilter(status) {
+    activeApptStatusFilter = status;
+    document.querySelectorAll('.appt-status-tabs .appt-tab').forEach(btn => {
+        if (btn.getAttribute('data-status') === status) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    filterAppointments();
+}
+
+function clearApptDateFilter() {
+    const dateInput = document.getElementById('apptDateFilter');
+    if (dateInput) {
+        dateInput.value = '';
+        filterAppointments();
+    }
+}
+
+function filterAppointments() {
+    const search = (document.getElementById('apptSearchInput')?.value || '').toLowerCase().trim();
+    const dateVal = document.getElementById('apptDateFilter')?.value || '';
+
+    const filtered = cachedAppointments.filter(appt => {
+        if (activeApptStatusFilter !== 'all' && appt.status !== activeApptStatusFilter) {
+            return false;
+        }
+        if (dateVal && appt.preferred_date !== dateVal) {
+            return false;
+        }
+        if (search) {
+            const ref = (appt.reference_no || '').toLowerCase();
+            const name = (appt.name || '').toLowerCase();
+            const mobile = (appt.mobile || '').toLowerCase();
+            const reason = (appt.reason || '').toLowerCase();
+            if (!ref.includes(search) && !name.includes(search) && !mobile.includes(search) && !reason.includes(search)) {
+                return false;
+            }
+        }
+        return true;
+    });
+
+    renderAppointmentsTable(filtered);
+}
+
+function renderAppointmentsTable(list = null) {
+    const tbody = document.getElementById('appointmentsTableBody');
+    const countText = document.getElementById('apptCountText');
+    if (!tbody) return;
+
+    const items = list !== null ? list : cachedAppointments;
+
+    if (countText) {
+        const pending = cachedAppointments.filter(a => a.status === 'Pending').length;
+        countText.textContent = `Showing ${items.length} of ${cachedAppointments.length} appointments (${pending} Pending)`;
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; color: #94a3b8; padding: 2.5rem;">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📅</div>
+                    <div>No appointments found matching your criteria.</div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = items.map(appt => {
+        const statusClass = `appt-status-${(appt.status || 'pending').toLowerCase()}`;
+        const cleanPhone = escapeHtml(appt.mobile || '');
+        const refNo = escapeHtml(appt.reference_no || '');
+        
+        return `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 0.75rem;">
+                    <span class="appt-ref-badge">${refNo}</span>
+                    <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
+                        ${new Date(appt.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </td>
+                <td style="padding: 0.75rem;">
+                    <strong style="color: #0f172a; font-size: 0.95rem;">${escapeHtml(appt.name)}</strong>
+                    <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">
+                        Age: <strong>${appt.age}</strong> &nbsp;|&nbsp; Gender: <strong>${escapeHtml(appt.gender)}</strong>
+                    </div>
+                </td>
+                <td style="padding: 0.75rem;">
+                    <a href="tel:${cleanPhone}" style="color: #0369a1; text-decoration: none; font-weight: 600;">
+                        📞 ${cleanPhone}
+                    </a>
+                    <div style="margin-top: 3px;">
+                        <a href="https://wa.me/91${cleanPhone}?text=Hello%20${encodeURIComponent(appt.name)}%2C%20regarding%20your%20appointment%20${encodeURIComponent(refNo)}%20at%20Bengali%20Homeopathic%20Clinic..." 
+                           target="_blank" style="color: #15803d; font-size: 0.75rem; text-decoration: none; font-weight: 600;">
+                           💬 WhatsApp
+                        </a>
+                    </div>
+                </td>
+                <td style="padding: 0.75rem;">
+                    <strong style="color: #1e293b; font-size: 0.9rem;">${escapeHtml(appt.preferred_date)}</strong>
+                </td>
+                <td style="padding: 0.75rem;">
+                    <div style="color: #334155; font-size: 0.85rem; max-width: 220px; word-break: break-word;">
+                        ${escapeHtml(appt.reason)}
+                    </div>
+                </td>
+                <td style="padding: 0.75rem;">
+                    <select class="appt-status-select ${statusClass}" onchange="handleUpdateApptStatus('${refNo}', this.value)">
+                        <option value="Pending" ${appt.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                        <option value="Confirmed" ${appt.status === 'Confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+                        <option value="Completed" ${appt.status === 'Completed' ? 'selected' : ''}>🩺 Completed</option>
+                        <option value="Cancelled" ${appt.status === 'Cancelled' ? 'selected' : ''}>🚫 Cancelled</option>
+                    </select>
+                </td>
+                <td style="padding: 0.75rem; text-align: center; white-space: nowrap;">
+                    <button type="button" class="btn-convert-appt" onclick="convertAppointmentToPatient('${refNo}')" title="Register this appointment as an OPD Patient">
+                        🩺 Convert to OPD
+                    </button>
+                    <button type="button" class="btn-del-catalog-med" onclick="handleDeleteAppointment('${refNo}')" title="Delete appointment" style="margin-left: 4px;">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function handleUpdateApptStatus(refNo, newStatus) {
+    const token = localStorage.getItem('clinic_auth_token');
+    if (!token) return;
+
+    try {
+        const res = await fetch(`/api/appointments/${encodeURIComponent(refNo)}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+        if (!res.ok) throw new Error('Failed to update status');
+
+        const appt = cachedAppointments.find(a => a.reference_no === refNo);
+        if (appt) appt.status = newStatus;
+        updateAppointmentsBadgeAndStats();
+        filterAppointments();
+        showToast(`✓ Appointment ${refNo} marked as ${newStatus}`);
+    } catch (err) {
+        showToast('❌ Failed to update status: ' + err.message);
+    }
+}
+
+async function handleDeleteAppointment(refNo) {
+    if (!confirm(`Are you sure you want to delete appointment ${refNo}?`)) return;
+
+    const token = localStorage.getItem('clinic_auth_token');
+    if (!token) return;
+
+    try {
+        const res = await fetch(`/api/appointments/${encodeURIComponent(refNo)}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to delete');
+
+        cachedAppointments = cachedAppointments.filter(a => a.reference_no !== refNo);
+        updateAppointmentsBadgeAndStats();
+        filterAppointments();
+        showToast(`✓ Appointment ${refNo} deleted`);
+    } catch (err) {
+        showToast('❌ Failed to delete: ' + err.message);
+    }
+}
+
+function convertAppointmentToPatient(refNo) {
+    const appt = cachedAppointments.find(a => a.reference_no === refNo);
+    if (!appt) return;
+
+    closeAppointmentsModal();
+
+    // Open Add Patient modal and populate fields
+    const modal = document.getElementById('patientModal');
+    if (modal) modal.classList.add('active');
+
+    const nameInput = document.getElementById('patientName');
+    const ageInput = document.getElementById('patientAge');
+    const genderSelect = document.getElementById('patientGender');
+    const phoneInput = document.getElementById('patientPhone');
+    const addressInput = document.getElementById('patientAddress');
+
+    if (nameInput) nameInput.value = appt.name || '';
+    if (ageInput) ageInput.value = appt.age || '';
+    if (genderSelect) genderSelect.value = appt.gender || 'Male';
+    if (phoneInput) phoneInput.value = appt.mobile || '';
+    if (addressInput) addressInput.value = `Appt Ref: ${refNo} | Reason: ${appt.reason || ''}`;
+
+    showToast(`✓ Pre-filled patient form from appointment ${refNo}`);
+}
+
 async function handleDoctorLogin(event) {
     if (event) event.preventDefault();
     const pin = (doctorPinInput ? doctorPinInput.value : '').trim();
@@ -1495,6 +1748,7 @@ async function handleDoctorLogin(event) {
         // Refresh dashboard data
         loadStats();
         loadMedicinesCatalog();
+        loadAppointments();
         doSearch();
     } catch (err) {
         showLockError(err.message);
@@ -1513,24 +1767,42 @@ function showLockError(msg) {
         lockErrorMsg.style.animation = 'lockShake 0.35s ease';
     }
     if (doctorPinInput) {
+        doctorPinInput.classList.add('input-error');
         doctorPinInput.focus();
         doctorPinInput.select();
     }
 }
 
-async function lockClinicApp() {
-    const token = localStorage.getItem('clinic_auth_token');
-    try {
-        if (token) {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        }
-    } catch (e) {}
+function clearLockError() {
+    if (lockErrorMsg) {
+        lockErrorMsg.textContent = '';
+        lockErrorMsg.style.display = 'none';
+    }
+    if (doctorPinInput) {
+        doctorPinInput.classList.remove('input-error');
+    }
+}
+
+function appendPin(digit) {
+    if (!doctorPinInput) return;
+    clearLockError();
+    if (doctorPinInput.value.length < 16) {
+        doctorPinInput.value += digit;
+    }
+    doctorPinInput.focus();
+}
+
+function togglePinVisibility() {
+    if (!doctorPinInput) return;
+    const isPass = doctorPinInput.type === 'password';
+    doctorPinInput.type = isPass ? 'text' : 'password';
+    const btn = document.getElementById('togglePasswordVisibility');
+    if (btn) btn.textContent = isPass ? '🙈' : '👁️';
+}
+
+function lockClinicApp() {
     localStorage.removeItem('clinic_auth_token');
-    showToast('🔒 Dashboard locked');
-    showLockScreen();
+    showLockScreen('OPD Dashboard is locked. Enter PIN to resume.');
 }
 
 async function initAuthAndApp() {
@@ -1565,12 +1837,14 @@ async function initAuthAndApp() {
         }
         hideLockScreen();
         loadMedicinesCatalog();
+        loadAppointments();
         // 2. Fetch fresh updates from server in background
         doSearch(true);
     } catch {
         // In case of temporary offline/network hiccup, proceed if token is cached
         hideLockScreen();
         loadMedicinesCatalog();
+        loadAppointments();
         doSearch(true);
     }
 }

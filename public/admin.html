@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bengali Homeopathic Clinic — Patient Records & OPD</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+</head>
+<body class="dashboard-body">
+
+    <!-- ─── Vibrant Navbar ─── -->
+    <nav class="navbar navbar-vibrant">
+        <a href="/" class="navbar-brand">
+            <div class="logo-circle">⚕</div>
+            <div>
+                <h1 class="brand-title">Bengali Homeopathic Clinic</h1>
+                <div class="brand-subtitle">
+                    Dr. Sapan Bakshi · BHMS (WBUMS) Kolkata · Reg. No. 30444
+                </div>
+            </div>
+        </a>
+        <div class="navbar-right">
+            <button type="button" class="nav-meds-btn" onclick="openAppointmentsModal()" title="View and Manage Patient Appointments" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #065f46; font-weight: 700;">
+                📅 Appointments (<span id="navAppointmentCount">0</span>)
+            </button>
+            <button type="button" class="nav-meds-btn" onclick="openMedicineCatalogModal()" title="View and Manage Clinic Medicines Catalog">
+                💊 Medicines (<span id="navMedicineCount">125</span>)
+            </button>
+            <a href="/" target="_blank" class="nav-meds-btn" style="text-decoration:none; background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); color: #1e40af; font-weight: 600;" title="Open Public Patient Website">
+                🌐 Patient Website ↗
+            </a>
+            <a href="tel:9304275795" class="phone-chip">
+                <span class="phone-icon">📞</span>
+                <span>93042 75795</span>
+            </a>
+            <span class="status-pill">
+                <span class="status-dot"></span> OPD Active
+            </span>
+            <button type="button" id="lockDashboardBtn" class="lock-nav-btn" title="Lock OPD Dashboard" onclick="lockClinicApp()">
+                🔒 Lock
+            </button>
+        </div>
+    </nav>
+
+    <!-- ─── Main Content Container ─── -->
+    <div class="container main-container">
+
+        <!-- ─── Doctor Hero Welcome Banner ─── -->
+        <div class="hero-welcome">
+            <div class="hero-left">
+                <h2>Doctor's OPD Dashboard</h2>
+                <p class="hero-desc">
+                    📍 Sarisab Pahi, Pandual, Madhubani — 847424, Bihar &nbsp;|&nbsp; Search patients, manage records & print OPD slips.
+                </p>
+            </div>
+            <div class="hero-right">
+                <div class="date-badge" id="currentDateBadge">
+                    📅 <span id="liveDateText">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 4 Colorful Stat / KPI Cards ─── -->
+        <div class="stats-grid">
+            <div class="stat-card stat-blue cursor-pointer" id="statCardPatients" title="Click to View All Patients" style="cursor: pointer;">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="statPatients">0</span>
+                    <span class="stat-label">Total Patients (View All ↗)</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-green">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="statPrescriptions">0</span>
+                    <span class="stat-label">Prescriptions Issued</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-amber cursor-pointer" onclick="openAppointmentsModal()" title="View and Manage Appointments" style="cursor: pointer;">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="statAppointmentsCount">0</span>
+                    <span class="stat-label">Appointments (<span id="statAppointmentsPending">0</span> Pending ↗)</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-purple">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-info">
+                    <span class="stat-number" style="font-size:1.15rem; font-weight:700;">1-Click</span>
+                    <span class="stat-label">Print Slip for Pen</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Search Card (Clear, Bright & Prominent) ─── -->
+        <div class="card search-card">
+            <div class="card-header-bar">
+                <div class="card-title-group">
+                    <span class="card-badge-icon">🔍</span>
+                    <div>
+                        <h3 class="card-heading">Find Patient</h3>
+                        <p class="card-subheading">Search by Patient Name, Phone Number, or Unique ID</p>
+                    </div>
+                </div>
+                <button class="btn btn-emerald btn-lg" id="newPatientBtn">
+                    <span style="font-size:1.15rem; font-weight:700;">+</span> Register New Patient
+                </button>
+            </div>
+
+            <div class="search-form-row">
+                <div class="search-input-box">
+                    <span class="search-glass-icon">🔎</span>
+                    <input type="text" 
+                           id="searchInput" 
+                           placeholder="Type patient name, phone number, or ID (e.g. Ramesh, 98350, PAT-00001)..." 
+                           autocomplete="off">
+                    <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Clear">✕</button>
+                </div>
+                <button class="btn btn-sapphire btn-lg" id="searchBtn">
+                    Search Patient
+                </button>
+                <button type="button" class="btn btn-outline btn-lg" id="viewAllSearchBtn" title="View all registered patients" style="font-weight:700;">
+                    👥 View All Patients
+                </button>
+            </div>
+        </div>
+
+        <!-- ─── Patient Detail Section (Shows when clicked) ─── -->
+        <div id="patientDetail" class="card patient-detail-card hidden">
+            <div class="detail-header-vibrant">
+                <div class="detail-profile">
+                    <div class="detail-avatar" id="detailAvatar">--</div>
+                    <div>
+                        <div class="detail-name" id="detailName"></div>
+                        <span class="detail-id-pill" id="detailPatientId"></span>
+                    </div>
+                </div>
+                <div class="detail-actions">
+                    <button class="btn btn-emerald btn-lg" id="addRxBtn" onclick="openAddRxModal()">
+                        💊 + Add Prescription
+                    </button>
+                    <button class="btn btn-sapphire btn-lg" id="printBlankPadBtn">
+                        🖨️ Print OPD Card (Pen)
+                    </button>
+                    <button class="btn btn-outline btn-lg" id="editPatientBtn">
+                        ✏️ Edit Details
+                    </button>
+                    <button class="btn btn-danger-soft btn-lg" id="deletePatientBtn">
+                        🗑️ Delete Patient
+                    </button>
+                </div>
+            </div>
+
+            <!-- Colorful Demographic Info Grid -->
+            <div class="info-chips-grid">
+                <div class="info-chip chip-blue">
+                    <div class="chip-icon">🎂</div>
+                    <div>
+                        <div class="chip-label">AGE</div>
+                        <div class="chip-val" id="detailAge">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-indigo">
+                    <div class="chip-icon">⚧</div>
+                    <div>
+                        <div class="chip-label">GENDER</div>
+                        <div class="chip-val" id="detailGender">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-purple">
+                    <div class="chip-icon">📞</div>
+                    <div>
+                        <div class="chip-label">MOBILE NO</div>
+                        <div class="chip-val" id="detailPhone">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-emerald">
+                    <div class="chip-icon">🏠</div>
+                    <div>
+                        <div class="chip-label">PATIENT ADDRESS</div>
+                        <div class="chip-val" id="detailAddress">--</div>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-amber">
+                    <div class="chip-icon">📅</div>
+                    <div>
+                        <div class="chip-label">LAST VISIT DATE</div>
+                        <div class="chip-val" id="detailLastVisit">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prescription History -->
+            <div class="section-title-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <span class="title-text">📋 Past Prescriptions & Medical History</span>
+                <button type="button" class="btn btn-emerald btn-sm" onclick="openAddRxModal()" style="font-weight: 700;">
+                    💊 + Write New Prescription
+                </button>
+            </div>
+            <div id="rxHistory"></div>
+        </div>
+
+        <!-- ─── Directory / Search Results Section ─── -->
+        <div class="directory-section" id="directorySection">
+            <div class="directory-header">
+                <div class="directory-title">
+                    <span class="dir-icon">📂</span>
+                    <span id="resultsTitle">Patient Directory</span>
+                    <span class="count-pill" id="resultsCount">0 Patients</span>
+                </div>
+                <div class="directory-actions-row">
+                    <button type="button" class="filter-tab-btn active-tab" id="filterRecentBtn">
+                        ⚡ Recent (25)
+                    </button>
+                    <button type="button" class="filter-tab-btn" id="filterAllBtn">
+                        👥 View All Patients
+                    </button>
+                    <div class="view-toggle-group">
+                        <button type="button" class="view-toggle-btn active" id="viewTableBtn" title="Table View">
+                            📋 Table
+                        </button>
+                        <button type="button" class="view-toggle-btn" id="viewCardsBtn" title="Card Grid View">
+                            🎴 Cards
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Multi-Field Filter Bar (Name, PT ID, Village, Phone) ── -->
+            <div class="directory-filter-bar">
+                <div class="filter-inputs-grid">
+                    <div class="filter-field">
+                        <label for="filterName"><span class="filter-icon">👤</span> Search Name</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterName" placeholder="e.g. Ramesh, Sunita..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterName')">✕</button>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="filterId"><span class="filter-icon">🆔</span> Search PT ID</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterId" placeholder="e.g. PT-00001, 42..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterId')">✕</button>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="filterVillage"><span class="filter-icon">📍</span> Search Village / Address</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterVillage" placeholder="e.g. Sarisab, Pandual..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterVillage')">✕</button>
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="filterPhone"><span class="filter-icon">📞</span> Search Phone</label>
+                        <div class="filter-input-wrap">
+                            <input type="text" id="filterPhone" placeholder="e.g. 98350..." autocomplete="off">
+                            <button type="button" class="filter-clear-btn" onclick="clearSpecificFilter('filterPhone')">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-controls-row">
+                    <div class="sort-select-wrap">
+                        <label for="sortOrderSelect">↕️ Sort by:</label>
+                        <select id="sortOrderSelect" class="sort-dropdown" onchange="applySortingAndRender()">
+                            <option value="visit_desc">📅 Last Visit (Newest First)</option>
+                            <option value="visit_asc">📅 Last Visit (Oldest First)</option>
+                            <option value="name_asc">🔤 Patient Name (A → Z)</option>
+                            <option value="name_desc">🔤 Patient Name (Z → A)</option>
+                            <option value="id_asc">🆔 Patient ID (Low → High)</option>
+                            <option value="id_desc">🆔 Patient ID (High → Low)</option>
+                            <option value="village_asc">📍 Village / Address (A → Z)</option>
+                            <option value="village_desc">📍 Village / Address (Z → A)</option>
+                            <option value="age_asc">🎂 Age (Youngest First)</option>
+                            <option value="age_desc">🎂 Age (Oldest First)</option>
+                            <option value="phone_asc">📞 Phone Number (Ascending)</option>
+                        </select>
+                    </div>
+                    <button type="button" id="resetFiltersBtn" class="btn btn-sm btn-outline-danger" onclick="resetAllDirectoryFilters()">
+                        ✕ Clear All Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Patient Table View Container ── -->
+            <div id="tableContainer" class="patients-table-responsive">
+                <table class="patients-table" id="patientsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="id" class="sortable-th" onclick="handleThSort('id')">
+                                Patient ID <span class="sort-icon" id="sortIcon-id">↕</span>
+                            </th>
+                            <th data-sort="name" class="sortable-th" onclick="handleThSort('name')">
+                                Patient Name <span class="sort-icon" id="sortIcon-name">↕</span>
+                            </th>
+                            <th data-sort="age" class="sortable-th" onclick="handleThSort('age')">
+                                Age & Gender <span class="sort-icon" id="sortIcon-age">↕</span>
+                            </th>
+                            <th data-sort="village" class="sortable-th" onclick="handleThSort('village')">
+                                Village / Address <span class="sort-icon" id="sortIcon-village">↕</span>
+                            </th>
+                            <th data-sort="phone" class="sortable-th" onclick="handleThSort('phone')">
+                                Phone Number <span class="sort-icon" id="sortIcon-phone">↕</span>
+                            </th>
+                            <th data-sort="visit" class="sortable-th" onclick="handleThSort('visit')">
+                                Last Visit <span class="sort-icon" id="sortIcon-visit">↕</span>
+                            </th>
+                            <th class="th-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Patient Cards Container -->
+            <div id="searchResults" class="results-grid hidden">
+                <!-- Populated automatically by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── Register New Patient Modal ─── -->
+    <div class="modal-overlay" id="patientModal">
+        <div class="modal modal-vibrant">
+            <div class="modal-header-vibrant">
+                <div class="modal-title-group">
+                    <span class="modal-icon">👤</span>
+                    <div>
+                        <h3>Register New Patient</h3>
+                        <p>Fill in patient demographics to generate a unique ID & print OPD slip</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="cancelPatientBtn" title="Close">✕</button>
+            </div>
+
+            <form id="patientForm">
+                <div class="modal-body-vibrant">
+                    <div class="form-group">
+                        <label>Patient's Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" placeholder="e.g. Ramesh Kumar, Sunita Devi" required autocomplete="off">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age (Years) <span class="required">*</span></label>
+                            <input type="number" name="age" min="0" max="130" placeholder="e.g. 42" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender <span class="required">*</span></label>
+                            <select name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" name="phone" placeholder="e.g. 98350 12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patient Address (Village / Mohalla, Post, District)</label>
+                        <input type="text" name="address" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani">
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" id="cancelPatientBtn2">Cancel</button>
+                    <button type="submit" class="btn btn-emerald btn-lg">
+                        ✓ Save & Open Patient Slip
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Edit Patient Details Modal ─── -->
+    <div class="modal-overlay" id="editPatientModal">
+        <div class="modal modal-vibrant">
+            <div class="modal-header-vibrant edit-header">
+                <div class="modal-title-group">
+                    <span class="modal-icon">✏️</span>
+                    <div>
+                        <h3>Edit Patient Details</h3>
+                        <p>Updating records for <span class="id-badge-sharp" id="editPatientIdBadge">PAT-00000</span></p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="cancelEditPatientBtn" title="Close">✕</button>
+            </div>
+
+            <form id="editPatientForm">
+                <input type="hidden" name="patient_id" id="editPatientId">
+                <div class="modal-body-vibrant">
+                    <div class="form-group">
+                        <label>Patient's Full Name <span class="required">*</span></label>
+                        <input type="text" name="name" id="editPatientName" placeholder="e.g. Ramesh Kumar, Sunita Devi" required autocomplete="off">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age (Years) <span class="required">*</span></label>
+                            <input type="number" name="age" id="editPatientAge" min="0" max="130" placeholder="e.g. 42" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender <span class="required">*</span></label>
+                            <select name="gender" id="editPatientGender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" name="phone" id="editPatientPhone" placeholder="e.g. 98350 12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patient Address (Village / Mohalla, Post, District)</label>
+                        <input type="text" name="address" id="editPatientAddress" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani">
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" id="cancelEditPatientBtn2">Cancel</button>
+                    <button type="submit" class="btn btn-emerald btn-lg" id="saveEditPatientBtn">
+                        ✓ Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Write / Add Prescription Modal ─── -->
+    <div class="modal-overlay" id="prescriptionModal">
+        <div class="modal modal-vibrant modal-prescription">
+            <div class="modal-header-vibrant">
+                <div class="modal-title-group">
+                    <span class="modal-icon">💊</span>
+                    <div>
+                        <h3>Write New Prescription</h3>
+                        <p id="rxModalPatientSub">Select a patient to prescribe medicines</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeAddRxModal()" title="Close">✕</button>
+            </div>
+
+            <form id="newPrescriptionForm" onsubmit="handleSavePrescription(event)">
+                <input type="hidden" id="rxPatientId">
+                <input type="hidden" id="rxPreviousVisitDate">
+
+                <div class="modal-body-vibrant">
+                    <!-- Patient & Visit Summary Banner -->
+                    <div class="rx-summary-banner">
+                        <div class="rx-patient-info-wrap">
+                            <span class="rx-p-avatar" id="rxModalAvatar">--</span>
+                            <div>
+                                <strong id="rxModalPatientName">--</strong>
+                                <span class="rx-p-code" id="rxModalPatientId">--</span>
+                            </div>
+                        </div>
+                        <div class="rx-visit-dates-wrap">
+                            <div class="visit-date-pill pill-today">
+                                <span class="v-label">TODAY'S VISIT:</span>
+                                <strong id="rxModalTodayDate">--</strong>
+                            </div>
+                            <div class="visit-date-pill pill-last" id="rxModalLastVisitPill">
+                                <span class="v-label">LAST VISIT:</span>
+                                <strong id="rxModalLastVisitText">--</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complaints & Diagnosis -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Chief Complaints / Symptoms</label>
+                            <input type="text" id="rxComplaints" placeholder="e.g. Dry cough, fever with chills, body ache since 3 days...">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Clinical Diagnosis / Finding</label>
+                            <input type="text" id="rxDiagnosis" placeholder="e.g. Acute Bronchitis, Allergic Rhinitis...">
+                        </div>
+                    </div>
+
+                    <!-- Prescribed Medicines Section -->
+                    <div class="rx-medicines-section">
+                        <div class="rx-med-header">
+                            <div class="rx-med-title">
+                                <span class="rx-sym">℞</span> Prescribed Medicines
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-sm btn-outline-purple" onclick="openAddMedicineModal()" title="Add a new medicine to clinic catalog">
+                                    💊 + Add to Database
+                                </button>
+                                <button type="button" class="btn btn-sm btn-emerald" onclick="addMedicineRow()">
+                                    + Add Medicine Row
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Potency Helper Chips -->
+                        <div class="potency-chips-bar">
+                            <span class="potency-hint">Quick Power / Potency:</span>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('30C')">30C</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('200C')">200C</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('1M')">1M</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('Q')">Q (Mother Tincture)</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('6X')">6X</button>
+                            <button type="button" class="potency-chip" onclick="applyQuickPotency('12X')">12X</button>
+                        </div>
+
+                        <!-- Column Header Labels -->
+                        <div class="med-row-labels">
+                            <span>Medicine Name</span>
+                            <span>Power / Potency</span>
+                            <span>Dose</span>
+                            <span>Frequency</span>
+                            <span>Duration</span>
+                            <span></span>
+                        </div>
+
+                        <div id="medicinesListContainer" class="medicines-list-container">
+                            <!-- Dynamic medicine rows populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Advice & Notes -->
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Advice, Diet & Instructions</label>
+                        <textarea id="rxNotes" rows="2" placeholder="e.g. Take medicines 15 minutes before food with warm water. Avoid raw onion, garlic, and sour foods."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" onclick="closeAddRxModal()">Cancel</button>
+                    <button type="submit" class="btn btn-sapphire btn-lg" id="saveRxBtn">
+                        ✓ Save Prescription
+                    </button>
+                    <button type="button" class="btn btn-emerald btn-lg" id="saveAndPrintRxBtn" onclick="handleSaveAndPrintPrescription(event)">
+                        🖨️ Save & Print OPD Slip
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Doctor Security Lock Screen Overlay ─── -->
+    <div id="doctorLockModal" class="lock-screen-overlay">
+        <div class="lock-card">
+            <div class="lock-header">
+                <div class="lock-logo-badge">⚕️</div>
+                <h2 class="lock-title">Doctor Security Access</h2>
+                <div class="lock-subtitle">Bengali Homeopathic Clinic</div>
+                <div class="lock-doctor-meta">Dr. Sapan Bakshi · Reg. No. 30444</div>
+            </div>
+
+            <div class="lock-body">
+                <div id="lockErrorMsg" class="lock-error" style="display: none;"></div>
+
+                <form id="doctorLoginForm" onsubmit="handleDoctorLogin(event)">
+                    <div class="lock-input-wrap">
+                        <input type="password" id="doctorPinInput" class="lock-input" placeholder="Doctor PIN / Password" autocomplete="current-password" autofocus required>
+                        <button type="button" class="lock-eye-btn" id="togglePasswordVisibility" title="Show / Hide PIN" onclick="togglePinVisibility()">
+                            👁️
+                        </button>
+                    </div>
+
+                    <!-- Quick Touch Keypad for phone / tablet -->
+                    <div class="lock-keypad">
+                        <button type="button" class="keypad-btn" onclick="appendPin('1')">1</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('2')">2</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('3')">3</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('4')">4</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('5')">5</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('6')">6</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('7')">7</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('8')">8</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('9')">9</button>
+                        <button type="button" class="keypad-btn keypad-fn" onclick="clearPin()">C</button>
+                        <button type="button" class="keypad-btn" onclick="appendPin('0')">0</button>
+                        <button type="button" class="keypad-btn keypad-fn" onclick="backspacePin()">⌫</button>
+                    </div>
+
+                    <div class="lock-options">
+                        <label class="lock-remember-label">
+                            <input type="checkbox" id="rememberDeviceCheck" checked>
+                            <span>Remember this device for 30 days</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="unlockBtn" class="lock-submit-btn">
+                        <span id="unlockBtnText">🔓 Unlock OPD Dashboard</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Dynamic Medicine Autocomplete Datalist ─── -->
+    <datalist id="medicineDatalist"></datalist>
+    <datalist id="powerDatalist">
+        <option value="30C">30C (Centisimal)</option>
+        <option value="200C">200C (Centisimal)</option>
+        <option value="1M">1M (1,000)</option>
+        <option value="10M">10M (10,000)</option>
+        <option value="50M">50M (50,000)</option>
+        <option value="CM">CM (100,000)</option>
+        <option value="Q">Q (Mother Tincture)</option>
+        <option value="3X">3X (Decimal)</option>
+        <option value="6X">6X (Decimal)</option>
+        <option value="12X">12X (Decimal)</option>
+        <option value="30X">30X (Decimal)</option>
+        <option value="0/1">0/1 (LM Potency)</option>
+        <option value="0/2">0/2 (LM Potency)</option>
+        <option value="0/3">0/3 (LM Potency)</option>
+        <option value="0/6">0/6 (LM Potency)</option>
+    </datalist>
+
+    <!-- ─── Patient Appointments Manager Modal ─── -->
+    <div id="appointmentsManagerModal" class="modal-overlay">
+        <div class="modal-content modal-lg" style="max-width: 1050px; width: 95vw;">
+            <div class="modal-header-vibrant" style="background: linear-gradient(135deg, #059669, #0d9488);">
+                <div>
+                    <h3 style="color: #ffffff; margin: 0; font-size: 1.25rem;">📅 Patient Appointments Manager</h3>
+                    <p style="color: #ccfbf1; margin: 0.2rem 0 0; font-size: 0.85rem;">Online booking requests, reference number search, and 1-click OPD conversion</p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeAppointmentsModal()">✕</button>
+            </div>
+
+            <div class="modal-body-vibrant">
+                <!-- Search, Filter & Quick Status Row -->
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 0.85rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <div style="flex: 2; min-width: 240px; position: relative;">
+                        <input type="text" id="apptSearchInput" placeholder="🔍 Search Ref # (e.g. BHC-...), Name, or Mobile..." 
+                               oninput="filterAppointments()" 
+                               style="width: 100%; padding: 0.65rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Date:</label>
+                        <input type="date" id="apptDateFilter" onchange="filterAppointments()" 
+                               style="padding: 0.55rem 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="clearApptDateFilter()" title="Clear date filter" style="padding: 0.55rem 0.65rem;">✕</button>
+                    </div>
+
+                    <!-- Status Filter Tabs -->
+                    <div class="appt-status-tabs" style="display: flex; gap: 0.35rem; margin-left: auto;">
+                        <button type="button" class="appt-tab active" data-status="all" onclick="setApptStatusFilter('all')">All</button>
+                        <button type="button" class="appt-tab" data-status="Pending" onclick="setApptStatusFilter('Pending')">⏳ Pending</button>
+                        <button type="button" class="appt-tab" data-status="Confirmed" onclick="setApptStatusFilter('Confirmed')">✅ Confirmed</button>
+                        <button type="button" class="appt-tab" data-status="Completed" onclick="setApptStatusFilter('Completed')">🩺 Completed</button>
+                        <button type="button" class="appt-tab" data-status="Cancelled" onclick="setApptStatusFilter('Cancelled')">🚫 Cancelled</button>
+                    </div>
+
+                    <button type="button" class="btn btn-outline btn-sm" onclick="loadAppointments(true)" title="Refresh appointments" style="margin-left: 0.5rem;">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <!-- Appointments Table Container -->
+                <div class="med-catalog-container" style="max-height: 550px; overflow-y: auto;">
+                    <table class="med-catalog-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f1f5f9; text-align: left; position: sticky; top: 0; z-index: 10;">
+                                <th style="width: 16%; padding: 0.75rem;">Reference #</th>
+                                <th style="width: 22%; padding: 0.75rem;">Patient Details</th>
+                                <th style="width: 14%; padding: 0.75rem;">Mobile</th>
+                                <th style="width: 13%; padding: 0.75rem;">Preferred Date</th>
+                                <th style="width: 17%; padding: 0.75rem;">Reason for Visit</th>
+                                <th style="width: 10%; padding: 0.75rem;">Status</th>
+                                <th style="width: 8%; padding: 0.75rem; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer-vibrant">
+                <span id="apptCountText" style="color: #64748b; font-size: 0.85rem; font-weight: 600; margin-right: auto;"></span>
+                <button type="button" class="btn btn-outline" onclick="closeAppointmentsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Master Medicine Catalog Modal ─── -->
+    <div id="medicineCatalogModal" class="modal-overlay">
+        <div class="modal-content modal-lg" style="max-width: 850px;">
+            <div class="modal-header-vibrant" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                <div>
+                    <h3 style="color: #ffffff; margin: 0; font-size: 1.25rem;">💊 Clinic Medicine Catalog & Database</h3>
+                    <p style="color: #ede9fe; margin: 0.2rem 0 0; font-size: 0.85rem;">Master database of clinic remedies, potencies, and default dosages</p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeMedicineCatalogModal()">✕</button>
+            </div>
+
+            <div class="modal-body-vibrant">
+                <div class="med-catalog-search-wrap">
+                    <input type="text" id="catalogSearchInput" class="med-catalog-search-input" placeholder="🔍 Search medicines by name, indication, or potency..." oninput="filterMedicineCatalog()">
+                    <button type="button" class="btn btn-emerald" onclick="openAddMedicineModal()">
+                        + Add New Medicine
+                    </button>
+                </div>
+
+                <div class="med-catalog-container">
+                    <table class="med-catalog-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 28%;">Medicine Name</th>
+                                <th style="width: 24%;">Common Potencies</th>
+                                <th style="width: 20%;">Default Dose & Freq</th>
+                                <th style="width: 20%;">Indication / Notes</th>
+                                <th style="width: 8%; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicineCatalogTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer-vibrant">
+                <span id="catalogCountText" style="color: #64748b; font-size: 0.85rem; font-weight: 600; margin-right: auto;"></span>
+                <button type="button" class="btn btn-outline" onclick="closeMedicineCatalogModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Add Medicine to Database Modal ─── -->
+    <div id="addMedicineModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header-vibrant" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                <div>
+                    <h3 style="color: #ffffff; margin: 0; font-size: 1.15rem;">💊 Add Medicine to Database</h3>
+                    <p style="color: #ede9fe; margin: 0.2rem 0 0; font-size: 0.82rem;">Save to master database for instant 1-click autocomplete</p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeAddMedicineModal()">✕</button>
+            </div>
+
+            <form id="addMedicineForm" onsubmit="handleSaveNewMedicine(event)">
+                <div class="modal-body-vibrant">
+                    <div class="form-group">
+                        <label>Medicine Name <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="newMedName" placeholder="e.g. Arnica Montana, Nux Vomica, Thuja Occ" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Available Potencies (separated by comma)</label>
+                        <input type="text" id="newMedPotencies" placeholder="e.g. 30C, 200C, 1M, Q, 6X" value="30C, 200C, 1M, Q">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Default Dosage</label>
+                            <input type="text" id="newMedDosage" placeholder="e.g. 4 pills, 10 drops" value="4 pills">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Default Frequency</label>
+                            <input type="text" id="newMedFrequency" placeholder="e.g. 3 times daily" value="3 times daily">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Default Duration</label>
+                            <input type="text" id="newMedDuration" placeholder="e.g. 7 Days, 15 Days" value="7 Days">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Indication / Clinical Note</label>
+                            <input type="text" id="newMedIndication" placeholder="e.g. For pain, cough, digestion...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" onclick="closeAddMedicineModal()">Cancel</button>
+                    <button type="submit" class="btn btn-sapphire" id="saveNewMedBtn">
+                        ✓ Save Medicine to Database
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Toast Notifications ─── -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

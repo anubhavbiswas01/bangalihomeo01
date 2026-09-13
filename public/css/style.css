@@ -3552,6 +3552,115 @@ body {
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
+/* ── Appointments Manager Styles ── */
+.appt-status-tabs .appt-tab {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 0.45rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.appt-status-tabs .appt-tab:hover {
+    background: #e2e8f0;
+}
+
+.appt-status-tabs .appt-tab.active {
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+}
+
+.appt-ref-badge {
+    display: inline-block;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1.5px solid #86efac;
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+}
+
+.appt-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.appt-status-pending {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+.appt-status-confirmed {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.appt-status-completed {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+}
+
+.appt-status-cancelled {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
+.appt-status-select {
+    padding: 0.35rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.appt-status-select:focus {
+    border-color: #0f766e;
+    outline: none;
+}
+
+.btn-convert-appt {
+    background: #059669;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-convert-appt:hover {
+    background: #047857;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+}
+
+
 
 
 
