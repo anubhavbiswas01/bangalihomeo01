@@ -675,11 +675,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.25rem;
+    padding: 1.5rem 1rem;
     z-index: 1000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+    overflow-y: auto; /* Enables scrolling on overlay when screen height is small */
+    overscroll-behavior: contain;
 }
 
 .confirm-modal-overlay.active {
@@ -687,14 +689,22 @@ body {
     pointer-events: auto;
 }
 
+.print-slip-header {
+    display: none; /* Only show in print mode */
+}
+
 .confirm-card {
     background: #ffffff;
     border-radius: var(--radius-lg);
     width: 100%;
-    max-width: 580px;
-    padding: 2.5rem;
+    max-width: 520px;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto; /* Scroll inside the card if needed */
+    overscroll-behavior: contain;
+    padding: 1.75rem 2rem;
     box-shadow: var(--shadow-lg);
     text-align: center;
+    margin: auto;
     animation: confirmSlideUp 0.3s ease;
 }
 
@@ -704,51 +714,52 @@ body {
 }
 
 .confirm-badge-icon {
-    width: 72px;
-    height: 72px;
+    width: 52px;
+    height: 52px;
     background: #dcfce7;
     color: #15803d;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.25rem;
-    margin: 0 auto 1.25rem;
+    font-size: 1.75rem;
+    margin: 0 auto 0.75rem;
     border: 3px solid #86efac;
 }
 
 .confirm-title {
-    font-size: 1.65rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.25;
 }
 
 .confirm-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-muted);
-    margin-bottom: 1.75rem;
+    margin-bottom: 1rem;
 }
 
 .ref-box-highlight {
     background: #f0fdf4;
     border: 2px dashed #22c55e;
     border-radius: var(--radius-md);
-    padding: 1.25rem;
-    margin-bottom: 1.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
 }
 
 .ref-box-label {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: #15803d;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
 }
 
 .ref-box-number {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 900;
     font-family: monospace;
     color: #042f2e;
@@ -758,16 +769,16 @@ body {
 .confirm-details-list {
     background: #f8fafc;
     border-radius: var(--radius-sm);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
     text-align: left;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
 }
 
 .confirm-details-row {
     display: flex;
     justify-content: space-between;
-    padding: 0.35rem 0;
+    padding: 0.3rem 0;
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -786,9 +797,9 @@ body {
 }
 
 .confirm-note {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #64748b;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.15rem;
     line-height: 1.4;
 }
 

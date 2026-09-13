@@ -204,12 +204,28 @@ function displayConfirmation(data) {
     document.getElementById('confReason').textContent = data.reason;
 
     modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Scroll card to top
+    const card = modal.querySelector('.confirm-card');
+    if (card) card.scrollTop = 0;
 }
 
 function closeConfirmationModal() {
     const modal = document.getElementById('confirmModal');
     if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
 }
+
+// Close on clicking backdrop
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('confirmModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeConfirmationModal();
+        });
+    }
+});
 
 function printAppointmentSlip() {
     window.print();
