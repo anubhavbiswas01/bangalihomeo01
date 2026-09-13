@@ -332,7 +332,7 @@ function renderPatientsTable(patients) {
                 </div>
             </td>
             <td>
-                <div style="font-weight: 700; color: #1e293b;">${p.age ? `${p.age} Yrs` : '--'}</div>
+                <div class="pt-age-text">${p.age ? `${p.age} Yrs` : '--'}</div>
                 <div class="pt-meta-text">${p.gender || '--'}</div>
             </td>
             <td>
