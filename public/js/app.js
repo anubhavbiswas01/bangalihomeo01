@@ -1547,8 +1547,9 @@ function filterAppointments() {
             const ref = (appt.reference_no || '').toLowerCase();
             const name = (appt.name || '').toLowerCase();
             const mobile = (appt.mobile || '').toLowerCase();
+            const address = (appt.address || '').toLowerCase();
             const reason = (appt.reason || '').toLowerCase();
-            if (!ref.includes(search) && !name.includes(search) && !mobile.includes(search) && !reason.includes(search)) {
+            if (!ref.includes(search) && !name.includes(search) && !mobile.includes(search) && !address.includes(search) && !reason.includes(search)) {
                 return false;
             }
         }
@@ -1600,6 +1601,7 @@ function renderAppointmentsTable(list = null) {
                     <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">
                         Age: <strong>${appt.age}</strong> &nbsp;|&nbsp; Gender: <strong>${escapeHtml(appt.gender)}</strong>
                     </div>
+                    ${appt.address ? `<div style="color: #0f766e; font-size: 0.78rem; margin-top: 2px; font-weight: 500;">📍 ${escapeHtml(appt.address)}</div>` : ''}
                 </td>
                 <td style="padding: 0.75rem;">
                     <a href="tel:${cleanPhone}" style="color: #0369a1; text-decoration: none; font-weight: 600;">
@@ -1734,7 +1736,7 @@ async function convertAppointmentToPatient(refNo) {
     if (ageInput) ageInput.value = appt.age || '';
     if (genderSelect) genderSelect.value = appt.gender || 'Male';
     if (phoneInput) phoneInput.value = appt.mobile || '';
-    if (addressInput) addressInput.value = `Appt: ${refNo} | ${appt.reason || ''}`;
+    if (addressInput) addressInput.value = appt.address || (appt.reason ? `Appt: ${refNo} | ${appt.reason}` : '');
 
     setTimeout(() => {
         if (nameInput) {

@@ -231,6 +231,13 @@
                         </div>
                     </div>
 
+                    <!-- Address / Village -->
+                    <div class="form-group-patient">
+                        <label for="patientAddress">Address / Location <span style="font-size: 0.8rem; font-weight: 500; color: #64748b;">(Village / Mohalla, Town / District)</span></label>
+                        <input type="text" id="patientAddress" class="form-input-patient" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani" autocomplete="street-address">
+                        <div class="field-error-msg"></div>
+                    </div>
+
                     <!-- Reason for Visit -->
                     <div class="form-group-patient">
                         <label for="patientReason">Reason for Visit / Chief Symptoms <span class="req">*</span></label>
@@ -383,6 +390,10 @@
                 <div class="confirm-details-row">
                     <span>Mobile Number:</span>
                     <span id="confPatientMobile">--</span>
+                </div>
+                <div class="confirm-details-row" id="confAddressRow">
+                    <span>Address / Village:</span>
+                    <span id="confAddress">--</span>
                 </div>
                 <div class="confirm-details-row">
                     <span>Preferred Date:</span>

@@ -665,6 +665,7 @@ async function createAppointment(data) {
         age: parseInt(data.age, 10),
         gender: data.gender,
         mobile: String(data.mobile).trim(),
+        address: data.address ? String(data.address).trim() : '',
         preferred_date: data.preferred_date,
         reason: data.reason.trim(),
         status: 'Pending',

@@ -62,6 +62,7 @@ function initBookingForm() {
         const genderInput = document.getElementById('patientGender');
         const mobileInput = document.getElementById('patientMobile');
         const dateInput = document.getElementById('preferredDate');
+        const addressInput = document.getElementById('patientAddress');
         const reasonInput = document.getElementById('patientReason');
         const submitBtn = document.getElementById('submitBookingBtn');
         const submitBtnText = document.getElementById('submitBtnText');
@@ -70,6 +71,7 @@ function initBookingForm() {
         const age = parseInt(ageInput.value, 10);
         const gender = (genderInput.value || '').trim();
         const rawMobile = (mobileInput.value || '').trim();
+        const address = addressInput ? (addressInput.value || '').trim() : '';
         const preferredDate = (dateInput.value || '').trim();
         const reason = (reasonInput.value || '').trim();
 
@@ -130,6 +132,7 @@ function initBookingForm() {
                     age,
                     gender,
                     mobile: cleanMobile,
+                    address,
                     preferred_date: preferredDate,
                     reason
                 })
@@ -148,6 +151,7 @@ function initBookingForm() {
                 age: data.appointment.age,
                 gender: data.appointment.gender,
                 mobile: data.appointment.mobile,
+                address: data.appointment.address || address,
                 preferred_date: data.appointment.preferred_date,
                 reason: data.appointment.reason
             });
@@ -200,6 +204,10 @@ function displayConfirmation(data) {
     document.getElementById('confPatientName').textContent = data.name;
     document.getElementById('confPatientDemographics').textContent = `${data.age} yrs / ${data.gender}`;
     document.getElementById('confPatientMobile').textContent = data.mobile;
+    const addrEl = document.getElementById('confAddress');
+    if (addrEl) {
+        addrEl.textContent = data.address || 'Not specified';
+    }
     document.getElementById('confPreferredDate').textContent = formatDateReadable(data.preferred_date);
     document.getElementById('confReason').textContent = data.reason;
 

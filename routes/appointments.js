@@ -12,7 +12,7 @@ function getTodayIST() {
 // ── POST /api/appointments — PUBLIC: Book an appointment ──
 router.post('/', async (req, res) => {
     try {
-        const { name, age, gender, mobile, preferred_date, reason } = req.body || {};
+        const { name, age, gender, mobile, address, preferred_date, reason } = req.body || {};
 
         // 1. Full Name validation
         if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -55,11 +55,14 @@ router.post('/', async (req, res) => {
             return res.status(503).json({ error: 'Database service is currently unavailable. Please call the clinic directly at 93042 75795.' });
         }
 
+        const cleanAddress = address && typeof address === 'string' ? address.trim() : '';
+
         const appointment = await mongo.createAppointment({
             name: name.trim(),
             age: parsedAge,
             gender: gender,
             mobile: cleanMobile,
+            address: cleanAddress,
             preferred_date: preferred_date,
             reason: reason.trim()
         });
@@ -74,6 +77,7 @@ router.post('/', async (req, res) => {
                 age: appointment.age,
                 gender: appointment.gender,
                 mobile: appointment.mobile,
+                address: appointment.address || '',
                 preferred_date: appointment.preferred_date,
                 reason: appointment.reason,
                 status: appointment.status,
