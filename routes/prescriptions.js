@@ -2,9 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const gsheet = require('../db/gsheet');
+const mongo = require('../db/mongodb');
+
+const useMongo = () => mongo.isConfigured();
+const useGSheet = () => !useMongo() && gsheet.isConfigured();
 
 // ── Generate next Rx ID (RX-00001, RX-00002, …) ──
 async function nextRxId() {
+    if (useMongo()) {
+        const ids = await mongo.getNextRxId();
+        return ids.code;
+    }
     const row = await db.get('SELECT MAX(id) AS maxId FROM prescriptions');
     const num = ((row && row.maxId) || 0) + 1;
     return 'RX-' + String(num).padStart(5, '0');
@@ -24,10 +32,18 @@ router.post('/', async (req, res) => {
         let ptNumId = patient_id;
         let ptCode = patient_id;
         try {
-            const ptRow = await db.get('SELECT id, patient_id FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
-            if (ptRow) {
-                ptNumId = ptRow.id;
-                ptCode = ptRow.patient_id;
+            if (useMongo()) {
+                const pt = await mongo.getPatientById(patient_id);
+                if (pt) {
+                    ptNumId = pt.id;
+                    ptCode = pt.patient_id;
+                }
+            } else {
+                const ptRow = await db.get('SELECT id, patient_id FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
+                if (ptRow) {
+                    ptNumId = ptRow.id;
+                    ptCode = ptRow.patient_id;
+                }
             }
         } catch (e) {
             // Ignore if DB not reachable
@@ -37,15 +53,39 @@ router.post('/', async (req, res) => {
         let prevDate = previous_visit_date;
         if (!prevDate) {
             try {
-                const lastRx = await db.get(
-                    `SELECT created_at FROM prescriptions WHERE patient_id = ? OR patient_id = ? ORDER BY id DESC LIMIT 1`,
-                    [ptNumId, ptCode]
-                );
-                prevDate = lastRx ? lastRx.created_at : null;
+                if (useMongo()) {
+                    const pt = await mongo.getPatientById(ptCode || patient_id);
+                    if (pt && Array.isArray(pt.prescriptions) && pt.prescriptions.length > 0) {
+                        prevDate = pt.prescriptions[0].created_at;
+                    }
+                } else {
+                    const lastRx = await db.get(
+                        `SELECT created_at FROM prescriptions WHERE patient_id = ? OR patient_id = ? ORDER BY id DESC LIMIT 1`,
+                        [ptNumId, ptCode]
+                    );
+                    prevDate = lastRx ? lastRx.created_at : null;
+                }
             } catch (e) {}
         }
 
-        if (gsheet.isConfigured()) {
+        if (useMongo()) {
+            const newRx = await mongo.createPrescription({
+                patient_id: ptCode || patient_id,
+                complaints,
+                diagnosis,
+                notes,
+                medicines: medList,
+                previous_visit_date: prevDate
+            });
+            return res.status(201).json({
+                ...newRx,
+                patient_code: ptCode || patient_id,
+                medicines: medList,
+                previous_visit_date: prevDate
+            });
+        }
+
+        if (useGSheet()) {
             const newRx = await gsheet.createPrescription({
                 patient_id: ptCode || patient_id,
                 complaints,
@@ -111,7 +151,15 @@ router.post('/', async (req, res) => {
 // ── GET /api/prescriptions/:rxId — Get full prescription for print ──
 router.get('/:rxId', async (req, res) => {
     try {
-        if (gsheet.isConfigured()) {
+        if (useMongo()) {
+            const rx = await mongo.getPrescriptionById(req.params.rxId);
+            if (!rx) {
+                return res.status(404).json({ error: 'Prescription not found.' });
+            }
+            return res.json(rx);
+        }
+
+        if (useGSheet()) {
             const rx = await gsheet.getPrescriptionById(req.params.rxId);
             if (!rx || rx.error) {
                 return res.status(404).json({ error: 'Prescription not found.' });

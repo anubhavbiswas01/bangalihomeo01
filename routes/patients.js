@@ -2,11 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const gsheet = require('../db/gsheet');
+const mongo = require('../db/mongodb');
 
-const useGSheet = () => gsheet.isConfigured();
+const useMongo = () => mongo.isConfigured();
+const useGSheet = () => !useMongo() && gsheet.isConfigured();
 
 // ── Generate next patient ID (PAT-00001, PAT-00002, …) ──
 async function nextPatientId() {
+    if (useMongo()) {
+        const ids = await mongo.getNextPatientId();
+        return ids.code;
+    }
     const row = await db.get('SELECT MAX(id) AS maxId FROM patients');
     const num = ((row && row.maxId) || 0) + 1;
     return 'PAT-' + String(num).padStart(5, '0');
@@ -19,6 +25,17 @@ router.post('/', async (req, res) => {
 
         if (!name || !name.trim()) {
             return res.status(400).json({ error: 'Patient name is required.' });
+        }
+
+        if (useMongo()) {
+            const newPt = await mongo.createPatient({
+                name: name.trim(),
+                age: age ? parseInt(age, 10) : null,
+                gender: gender || null,
+                phone: phone ? phone.trim() : null,
+                address: address ? address.trim() : null
+            });
+            return res.status(201).json(newPt);
         }
 
         if (useGSheet()) {
@@ -55,6 +72,11 @@ router.post('/', async (req, res) => {
 // ── GET /api/patients — Return all registered patients ──
 router.get('/', async (req, res) => {
     try {
+        if (useMongo()) {
+            const patients = await mongo.getAllPatients(req.query.all === 'true');
+            return res.json(patients);
+        }
+
         if (useGSheet()) {
             const patients = await gsheet.getAllPatients();
             return res.json(patients);
@@ -76,6 +98,11 @@ router.get('/', async (req, res) => {
 // ── GET /api/patients/stats — Summary counts for dashboard ──
 router.get('/stats', async (req, res) => {
     try {
+        if (useMongo()) {
+            const stats = await mongo.getStats();
+            return res.json(stats);
+        }
+
         if (useGSheet()) {
             const stats = await gsheet.getStats();
             return res.json(stats);
@@ -103,6 +130,11 @@ router.get('/search', async (req, res) => {
     try {
         const q = (req.query.q || '').trim();
         const showAll = req.query.all === 'true';
+
+        if (useMongo()) {
+            const patients = await mongo.searchPatients(q, showAll);
+            return res.json(patients);
+        }
 
         if (useGSheet()) {
             const patients = await gsheet.searchPatients(q, showAll);
@@ -149,6 +181,14 @@ router.get('/search', async (req, res) => {
 // ── GET /api/patients/:id — Patient details + prescription history ──
 router.get('/:id', async (req, res) => {
     try {
+        if (useMongo()) {
+            const patient = await mongo.getPatientById(req.params.id);
+            if (!patient) {
+                return res.status(404).json({ error: 'Patient not found.' });
+            }
+            return res.json(patient);
+        }
+
         if (useGSheet()) {
             const patient = await gsheet.getPatientById(req.params.id);
             if (!patient || patient.error) {
@@ -200,6 +240,20 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Patient name is required.' });
         }
 
+        if (useMongo()) {
+            const updated = await mongo.updatePatient(req.params.id, {
+                name: name.trim(),
+                age: age ? parseInt(age, 10) : null,
+                gender: gender || null,
+                phone: phone ? phone.trim() : null,
+                address: address ? address.trim() : null
+            });
+            if (!updated) {
+                return res.status(404).json({ error: 'Patient not found.' });
+            }
+            return res.json(updated);
+        }
+
         if (useGSheet()) {
             await gsheet.updatePatient(req.params.id, {
                 name: name.trim(),
@@ -246,6 +300,14 @@ router.put('/:id', async (req, res) => {
 // ── DELETE /api/patients/:id — Delete patient and related records ──
 router.delete('/:id', async (req, res) => {
     try {
+        if (useMongo()) {
+            const deleted = await mongo.deletePatient(req.params.id);
+            if (!deleted) {
+                return res.status(404).json({ error: 'Patient not found.' });
+            }
+            return res.json({ success: true, message: `Patient ${req.params.id} deleted successfully.` });
+        }
+
         if (useGSheet()) {
             await gsheet.deletePatient(req.params.id);
             return res.json({ success: true, message: `Patient ${req.params.id} deleted successfully.` });
