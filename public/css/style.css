@@ -3399,6 +3399,135 @@ body {
     border-top: 1px dashed #e2e8f0;
 }
 
+/* ============================================================
+   MEDICINE DATABASE CATALOG & QUICK ADD STYLES
+   ============================================================ */
+
+.nav-meds-btn {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #ffffff;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 2px 6px rgba(109, 40, 217, 0.25);
+    transition: all 0.2s ease;
+}
+
+.nav-meds-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(109, 40, 217, 0.35);
+    background: linear-gradient(135deg, #6d28d9, #5b21b6);
+}
+
+.btn-outline-purple {
+    background: #f5f3ff;
+    color: #6d28d9;
+    border: 1.5px solid #c4b5fd;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline-purple:hover {
+    background: #ede9fe;
+    border-color: #8b5cf6;
+    color: #5b21b6;
+}
+
+.med-catalog-container {
+    max-height: 55vh;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.med-catalog-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.med-catalog-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    padding: 0.65rem 0.85rem;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.med-catalog-table td {
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.med-catalog-table tr:hover {
+    background: #fbfbfe;
+}
+
+.med-potency-badge {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    margin-right: 0.25rem;
+    margin-bottom: 0.15rem;
+}
+
+.btn-del-catalog-med {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+.btn-del-catalog-med:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.med-catalog-search-wrap {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.med-catalog-search-input {
+    flex: 1;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.med-catalog-search-input:focus {
+    border-color: #7c3aed;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+
 
 
 

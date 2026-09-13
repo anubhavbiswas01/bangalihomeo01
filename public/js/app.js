@@ -973,21 +973,63 @@ if (prescriptionModal) {
     });
 }
 
+// ============================================================
+// MASTER MEDICINE CATALOG & AUTOCOMPLETE SYSTEM
+// ============================================================
+
+let cachedMedicinesCatalog = [];
+
+async function loadMedicinesCatalog() {
+    try {
+        const meds = await api('/api/medicines');
+        cachedMedicinesCatalog = Array.isArray(meds) ? meds : [];
+        updateMedicineDatalist();
+        const countEl = document.getElementById('navMedicineCount');
+        if (countEl) countEl.textContent = cachedMedicinesCatalog.length;
+    } catch (e) {
+        console.warn('Could not load medicines catalog:', e.message);
+    }
+}
+
+function updateMedicineDatalist() {
+    const datalist = document.getElementById('medicineDatalist');
+    if (!datalist) return;
+    datalist.innerHTML = cachedMedicinesCatalog.map(m => `
+        <option value="${escapeHtml(m.name)}">${m.indication ? `— ${escapeHtml(m.indication)}` : ''}</option>
+    `).join('');
+}
+
 function addMedicineRow(name = '', dosage = '4 pills', frequency = '3 times daily', duration = '7 Days') {
     const container = document.getElementById('medicinesListContainer');
     if (!container) return;
     const row = document.createElement('div');
     row.className = 'medicine-row-card';
     row.innerHTML = `
-        <input type="text" class="med-input med-input-name" placeholder="Medicine Name & Potency (e.g. Arnica Mont 200C)" value="${escapeHtml(name)}">
+        <input type="text" class="med-input med-input-name" placeholder="Medicine Name (e.g. Arnica Montana)" value="${escapeHtml(name)}" list="medicineDatalist" autocomplete="off">
         <input type="text" class="med-input med-input-dosage" placeholder="Dose (e.g. 4 pills, 10 drops)" value="${escapeHtml(dosage)}">
         <input type="text" class="med-input med-input-frequency" placeholder="Frequency (e.g. 3 times daily)" value="${escapeHtml(frequency)}">
         <input type="text" class="med-input med-input-duration" placeholder="Duration (e.g. 7 Days)" value="${escapeHtml(duration)}">
         <button type="button" class="btn-del-med" onclick="this.closest('.medicine-row-card').remove()" title="Remove Medicine">✕</button>
     `;
     container.appendChild(row);
+
     const nameInput = row.querySelector('.med-input-name');
-    if (nameInput && !name) nameInput.focus();
+    if (nameInput) {
+        // Auto-fill default dosage & frequency when matching medicine is selected
+        nameInput.addEventListener('input', () => {
+            const val = nameInput.value.trim().toLowerCase();
+            const matched = cachedMedicinesCatalog.find(m => m.name.toLowerCase() === val);
+            if (matched) {
+                const dosageInput = row.querySelector('.med-input-dosage');
+                const freqInput = row.querySelector('.med-input-frequency');
+                const durInput = row.querySelector('.med-input-duration');
+                if (dosageInput && matched.default_dosage) dosageInput.value = matched.default_dosage;
+                if (freqInput && matched.default_frequency) freqInput.value = matched.default_frequency;
+                if (durInput && matched.default_duration) durInput.value = matched.default_duration;
+            }
+        });
+        if (!name) nameInput.focus();
+    }
 }
 
 function applyQuickPotency(potency) {
@@ -1003,6 +1045,178 @@ function applyQuickPotency(potency) {
         val = val.replace(/\b(Q|30C|200C|1M|10M|50M|CM|6X|12X|3X)\b/gi, '').trim();
         nameInput.value = val ? `${val} ${potency}` : potency;
         nameInput.focus();
+    }
+}
+
+// ── Master Catalog Modal Handlers ──
+function openMedicineCatalogModal() {
+    const modal = document.getElementById('medicineCatalogModal');
+    if (modal) modal.classList.add('active');
+    renderMedicineCatalog(cachedMedicinesCatalog);
+    const searchInput = document.getElementById('catalogSearchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+}
+
+function closeMedicineCatalogModal() {
+    const modal = document.getElementById('medicineCatalogModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function renderMedicineCatalog(list) {
+    const tbody = document.getElementById('medicineCatalogTableBody');
+    const countText = document.getElementById('catalogCountText');
+    if (!tbody) return;
+
+    if (!Array.isArray(list) || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No medicines found in database.</td></tr>`;
+        if (countText) countText.textContent = '0 medicines in database';
+        return;
+    }
+
+    if (countText) countText.textContent = `Showing ${list.length} medicines in database`;
+
+    tbody.innerHTML = list.map(m => {
+        const potencies = Array.isArray(m.common_potencies) ? m.common_potencies : (m.common_potencies ? String(m.common_potencies).split(',') : []);
+        const potencyBadges = potencies.map(p => `<span class="med-potency-badge">${escapeHtml(p.trim())}</span>`).join('');
+        return `
+            <tr>
+                <td>
+                    <strong style="color: #1e293b; font-size: 0.92rem;">${escapeHtml(m.name)}</strong>
+                </td>
+                <td>
+                    ${potencyBadges || '<span style="color:#94a3b8;">--</span>'}
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: #0f172a;">${escapeHtml(m.default_dosage || '4 pills')}</div>
+                    <div style="font-size: 0.75rem; color: #64748b;">${escapeHtml(m.default_frequency || '3 times daily')} · for ${escapeHtml(m.default_duration || '7 Days')}</div>
+                </td>
+                <td>
+                    <span style="font-size: 0.8rem; color: #475569;">${escapeHtml(m.indication || '--')}</span>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn-del-catalog-med" onclick="deleteMedicineFromCatalog('${escapeHtml(m.name).replace(/'/g, "\\'")}')" title="Delete Medicine">
+                        🗑️ Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterMedicineCatalog() {
+    const q = (document.getElementById('catalogSearchInput')?.value || '').trim().toLowerCase();
+    if (!q) {
+        renderMedicineCatalog(cachedMedicinesCatalog);
+        return;
+    }
+    const filtered = cachedMedicinesCatalog.filter(m => {
+        const nameM = (m.name || '').toLowerCase().includes(q);
+        const indM = (m.indication || '').toLowerCase().includes(q);
+        const potM = Array.isArray(m.common_potencies) ? m.common_potencies.some(p => p.toLowerCase().includes(q)) : false;
+        return nameM || indM || potM;
+    });
+    renderMedicineCatalog(filtered);
+}
+
+// ── Add Medicine Modal Handlers ──
+function openAddMedicineModal() {
+    const modal = document.getElementById('addMedicineModal');
+    if (modal) modal.classList.add('active');
+    const nameInput = document.getElementById('newMedName');
+    if (nameInput) {
+        nameInput.value = '';
+        nameInput.focus();
+    }
+}
+
+function closeAddMedicineModal() {
+    const modal = document.getElementById('addMedicineModal');
+    if (modal) modal.classList.remove('active');
+}
+
+async function handleSaveNewMedicine(event) {
+    event.preventDefault();
+    const btn = document.getElementById('saveNewMedBtn');
+    const name = document.getElementById('newMedName')?.value.trim();
+    if (!name) return;
+
+    const rawPotencies = document.getElementById('newMedPotencies')?.value || '30C, 200C, 1M, Q';
+    const potencies = rawPotencies.split(',').map(p => p.trim()).filter(Boolean);
+    const dosage = document.getElementById('newMedDosage')?.value.trim() || '4 pills';
+    const frequency = document.getElementById('newMedFrequency')?.value.trim() || '3 times daily';
+    const duration = document.getElementById('newMedDuration')?.value.trim() || '7 Days';
+    const indication = document.getElementById('newMedIndication')?.value.trim() || '';
+
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+        }
+
+        const newMed = await api('/api/medicines', {
+            method: 'POST',
+            body: JSON.stringify({
+                name,
+                common_potencies: potencies,
+                default_dosage: dosage,
+                default_frequency: frequency,
+                default_duration: duration,
+                indication
+            })
+        });
+
+        // Add to local cache immediately
+        cachedMedicinesCatalog.push(newMed);
+        cachedMedicinesCatalog.sort((a, b) => a.name.localeCompare(b.name));
+        updateMedicineDatalist();
+
+        const countEl = document.getElementById('navMedicineCount');
+        if (countEl) countEl.textContent = cachedMedicinesCatalog.length;
+
+        showToast(`✅ Medicine "${name}" added to database!`);
+        closeAddMedicineModal();
+        renderMedicineCatalog(cachedMedicinesCatalog);
+
+        // If prescription modal has empty medicine row, auto-fill it
+        const emptyNameInput = document.querySelector('#medicinesListContainer .medicine-row-card:last-child .med-input-name');
+        if (emptyNameInput && !emptyNameInput.value) {
+            emptyNameInput.value = name;
+            const parentRow = emptyNameInput.closest('.medicine-row-card');
+            if (parentRow) {
+                const dosageInput = parentRow.querySelector('.med-input-dosage');
+                const freqInput = parentRow.querySelector('.med-input-frequency');
+                const durInput = parentRow.querySelector('.med-input-duration');
+                if (dosageInput) dosageInput.value = dosage;
+                if (freqInput) freqInput.value = frequency;
+                if (durInput) durInput.value = duration;
+            }
+        }
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✓ Save Medicine to Database';
+        }
+    }
+}
+
+async function deleteMedicineFromCatalog(name) {
+    if (!confirm(`Are you sure you want to delete "${name}" from the clinic database?`)) return;
+
+    try {
+        await api(`/api/medicines/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        cachedMedicinesCatalog = cachedMedicinesCatalog.filter(m => m.name.toLowerCase() !== name.toLowerCase());
+        updateMedicineDatalist();
+        const countEl = document.getElementById('navMedicineCount');
+        if (countEl) countEl.textContent = cachedMedicinesCatalog.length;
+        renderMedicineCatalog(cachedMedicinesCatalog);
+        showToast(`🗑️ Medicine "${name}" removed from database.`);
+    } catch (err) {
+        showToast(err.message, true);
     }
 }
 
@@ -1250,6 +1464,7 @@ async function handleDoctorLogin(event) {
 
         // Refresh dashboard data
         loadStats();
+        loadMedicinesCatalog();
         doSearch();
     } catch (err) {
         showLockError(err.message);
@@ -1319,11 +1534,13 @@ async function initAuthAndApp() {
             return;
         }
         hideLockScreen();
+        loadMedicinesCatalog();
         // 2. Fetch fresh updates from server in background
         doSearch(true);
     } catch {
         // In case of temporary offline/network hiccup, proceed if token is cached
         hideLockScreen();
+        loadMedicinesCatalog();
         doSearch(true);
     }
 }

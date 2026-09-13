@@ -405,6 +405,106 @@ async function getStats() {
     };
 }
 
+// ── Master Medicines Catalog ──
+
+const DEFAULT_MEDICINES = [
+    { name: 'Arnica Montana', common_potencies: ['30C', '200C', '1M', 'Q'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '7 Days', indication: 'Trauma, injury, soreness, muscular pain' },
+    { name: 'Nux Vomica', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'At bedtime', default_duration: '7 Days', indication: 'Gastric trouble, acidity, indigestion, constipation' },
+    { name: 'Rhus Toxicodendron', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '10 Days', indication: 'Joint pain, stiffness worse on first movement' },
+    { name: 'Bryonia Alba', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '7 Days', indication: 'Dry cough, pleurisy, pain worse with least motion' },
+    { name: 'Belladonna', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'High fever, sudden redness, throbbing headache' },
+    { name: 'Arsenicum Album', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: 'Morning & Evening', default_duration: '5 Days', indication: 'Food poisoning, burning pain, restlessness, asthma' },
+    { name: 'Pulsatilla Nigricans', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'Morning & Evening', default_duration: '15 Days', indication: 'Catarrh, menstrual irregularities, changeable symptoms' },
+    { name: 'Lycopodium Clavatum', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'Morning & Evening', default_duration: '15 Days', indication: 'Liver disorders, bloating 4-8 PM, flatulence' },
+    { name: 'Thuja Occidentalis', common_potencies: ['30C', '200C', '1M', 'Q'], default_dosage: '4 pills', default_frequency: 'Once daily', default_duration: '1 Month', indication: 'Warts, skin excrescences, polyp, vaccination ill-effects' },
+    { name: 'Calcarea Carbonica', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'Once daily', default_duration: '1 Month', indication: 'Fat, flabby, cold, profuse head sweating' },
+    { name: 'Sulphur', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'Once early morning', default_duration: '7 Days', indication: 'Skin itching, burning, psoriasis, chronic relapse' },
+    { name: 'Hypericum Perforatum', common_potencies: ['30C', '200C', 'Q'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '7 Days', indication: 'Nerve injury, crushed fingers/toes, coccyx fall' },
+    { name: 'Silicea', common_potencies: ['6X', '12X', '30C', '200C'], default_dosage: '4 tablets', default_frequency: '3 times daily', default_duration: '15 Days', indication: 'Boils, abscess, suppurations, weak nails' },
+    { name: 'Hepar Sulphuris', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Infections with extreme sensitivity to cold & touch' },
+    { name: 'Natrum Muriaticum', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'Morning & Evening', default_duration: '15 Days', indication: 'Headache from sun, anemia, grief, dry lips' },
+    { name: 'Aconitum Napellus', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '3 Days', indication: 'Sudden onset fever, panic, exposure to dry cold wind' },
+    { name: 'Chamomilla', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Dentition diarrhea, extreme irritability, colic' },
+    { name: 'Colocynthis', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Severe cramping, abdominal colic bending double' },
+    { name: 'Berberis Vulgaris', common_potencies: ['Q', '30C', '200C'], default_dosage: '10 drops in water', default_frequency: '3 times daily', default_duration: '1 Month', indication: 'Kidney stones, renal colic, radiating back pain' },
+    { name: 'Ignatia Amara', common_potencies: ['30C', '200C', '1M'], default_dosage: '4 pills', default_frequency: 'Morning & Evening', default_duration: '10 Days', indication: 'Acute grief, emotional distress, sighing' },
+    { name: 'Allium Cepa', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Coryza, acrid nasal discharge, bland lachrymation' },
+    { name: 'Cantharis Vesicatoria', common_potencies: ['30C', '200C', 'Q'], default_dosage: '4 pills / 10 drops', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Burning micturition, cystitis, burns and scalds' },
+    { name: 'Apis Mellifica', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Stinging pain, edema, bee stings, urticaria' },
+    { name: 'Ledum Palustre', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '7 Days', indication: 'Puncture wounds, black eye, animal bites, cold to touch' },
+    { name: 'Ruta Graveolens', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '10 Days', indication: 'Tendon, ligament sprain, periosteum injury, eye strain' },
+    { name: 'Carbo Vegetabilis', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Upper abdominal gas, collapse state, wants to be fanned' },
+    { name: 'Cinchona Officinalis (China)', common_potencies: ['30C', '200C', 'Q'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '10 Days', indication: 'Debility from loss of vital fluids, malaria, bloating' },
+    { name: 'Gelsemium Sempervirens', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '5 Days', indication: 'Dullness, dizziness, trembling, anticipation anxiety' },
+    { name: 'Drosera Rotundifolia', common_potencies: ['30C', '200C'], default_dosage: '4 pills', default_frequency: '3 times daily', default_duration: '7 Days', indication: 'Spasmodic paroxysmal cough, whooping cough worse at night' },
+    { name: 'Echinacea Angustifolia', common_potencies: ['Q', '30C'], default_dosage: '10 drops in water', default_frequency: '3 times daily', default_duration: '15 Days', indication: 'Immunity booster, blood purifier, recurrent boils' }
+];
+
+async function seedDefaultMedicines(db) {
+    try {
+        const collection = db.collection('medicines');
+        const count = await collection.countDocuments({});
+        if (count === 0) {
+            const nowIso = new Date().toISOString();
+            const docs = DEFAULT_MEDICINES.map(m => ({ ...m, created_at: nowIso }));
+            await collection.insertMany(docs);
+            await collection.createIndex({ name: 1 }, { unique: true });
+            console.log(`✅ Pre-seeded ${docs.length} homeopathic medicines into database.`);
+        }
+    } catch (e) {
+        console.warn('Medicine seed notice:', e.message);
+    }
+}
+
+async function getAllMedicines() {
+    const db = await connect();
+    await seedDefaultMedicines(db);
+    const meds = await db.collection('medicines').find({}).sort({ name: 1 }).toArray();
+    return meds.map(m => {
+        delete m._id;
+        return m;
+    });
+}
+
+async function addMedicine(data) {
+    const db = await connect();
+    if (!data.name || !data.name.trim()) {
+        throw new Error('Medicine name is required.');
+    }
+
+    const cleanName = data.name.trim();
+    const existing = await db.collection('medicines').findOne({
+        name: { $regex: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+    });
+
+    if (existing) {
+        throw new Error(`Medicine "${cleanName}" already exists in the database.`);
+    }
+
+    const newMed = {
+        name: cleanName,
+        common_potencies: Array.isArray(data.common_potencies) ? data.common_potencies : ['30C', '200C', '1M', 'Q'],
+        default_dosage: data.default_dosage ? data.default_dosage.trim() : '4 pills',
+        default_frequency: data.default_frequency ? data.default_frequency.trim() : '3 times daily',
+        default_duration: data.default_duration ? data.default_duration.trim() : '7 Days',
+        indication: data.indication ? data.indication.trim() : '',
+        created_at: new Date().toISOString()
+    };
+
+    await db.collection('medicines').insertOne({ ...newMed });
+    delete newMed._id;
+    return newMed;
+}
+
+async function deleteMedicine(name) {
+    const db = await connect();
+    const cleanName = (name || '').trim();
+    const result = await db.collection('medicines').deleteOne({
+        name: { $regex: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+    });
+    return result.deletedCount > 0;
+}
+
 module.exports = {
     isConfigured,
     connect,
@@ -419,5 +519,10 @@ module.exports = {
     deletePatient,
     createPrescription,
     getPrescriptionById,
-    getStats
+    getStats,
+    getAllMedicines,
+    addMedicine,
+    deleteMedicine,
+    seedDefaultMedicines,
+    DEFAULT_MEDICINES
 };

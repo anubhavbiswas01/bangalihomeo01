@@ -39,6 +39,7 @@ const { requireAuth } = require('./middleware/auth');
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/patients', requireAuth, require('./routes/patients'));
 app.use('/api/prescriptions', requireAuth, require('./routes/prescriptions'));
+app.use('/api/medicines', requireAuth, require('./routes/medicines'));
 
 // Fallback — serve index.html
 app.get('*', (req, res) => {

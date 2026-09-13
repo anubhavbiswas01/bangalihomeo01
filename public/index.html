@@ -21,6 +21,9 @@
             </div>
         </a>
         <div class="navbar-right">
+            <button type="button" class="nav-meds-btn" onclick="openMedicineCatalogModal()" title="View and Manage Clinic Medicines Catalog">
+                💊 Medicines (<span id="navMedicineCount">30</span>)
+            </button>
             <a href="tel:9304275795" class="phone-chip">
                 <span class="phone-icon">📞</span>
                 <span>93042 75795</span>
@@ -496,9 +499,14 @@
                             <div class="rx-med-title">
                                 <span class="rx-sym">℞</span> Prescribed Medicines
                             </div>
-                            <button type="button" class="btn btn-sm btn-emerald" onclick="addMedicineRow()">
-                                + Add Medicine Row
-                            </button>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-sm btn-outline-purple" onclick="openAddMedicineModal()" title="Add a new medicine to clinic catalog">
+                                    💊 + Add to Database
+                                </button>
+                                <button type="button" class="btn btn-sm btn-emerald" onclick="addMedicineRow()">
+                                    + Add Medicine Row
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Quick Potency Helper Chips -->
@@ -586,6 +594,109 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- ─── Dynamic Medicine Autocomplete Datalist ─── -->
+    <datalist id="medicineDatalist"></datalist>
+
+    <!-- ─── Master Medicine Catalog Modal ─── -->
+    <div id="medicineCatalogModal" class="modal-overlay">
+        <div class="modal-content modal-lg" style="max-width: 850px;">
+            <div class="modal-header-vibrant" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                <div>
+                    <h3 style="color: #ffffff; margin: 0; font-size: 1.25rem;">💊 Clinic Medicine Catalog & Database</h3>
+                    <p style="color: #ede9fe; margin: 0.2rem 0 0; font-size: 0.85rem;">Master database of clinic remedies, potencies, and default dosages</p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeMedicineCatalogModal()">✕</button>
+            </div>
+
+            <div class="modal-body-vibrant">
+                <div class="med-catalog-search-wrap">
+                    <input type="text" id="catalogSearchInput" class="med-catalog-search-input" placeholder="🔍 Search medicines by name, indication, or potency..." oninput="filterMedicineCatalog()">
+                    <button type="button" class="btn btn-emerald" onclick="openAddMedicineModal()">
+                        + Add New Medicine
+                    </button>
+                </div>
+
+                <div class="med-catalog-container">
+                    <table class="med-catalog-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 28%;">Medicine Name</th>
+                                <th style="width: 24%;">Common Potencies</th>
+                                <th style="width: 20%;">Default Dose & Freq</th>
+                                <th style="width: 20%;">Indication / Notes</th>
+                                <th style="width: 8%; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicineCatalogTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer-vibrant">
+                <span id="catalogCountText" style="color: #64748b; font-size: 0.85rem; font-weight: 600; margin-right: auto;"></span>
+                <button type="button" class="btn btn-outline" onclick="closeMedicineCatalogModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Add Medicine to Database Modal ─── -->
+    <div id="addMedicineModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header-vibrant" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                <div>
+                    <h3 style="color: #ffffff; margin: 0; font-size: 1.15rem;">💊 Add Medicine to Database</h3>
+                    <p style="color: #ede9fe; margin: 0.2rem 0 0; font-size: 0.82rem;">Save to master database for instant 1-click autocomplete</p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeAddMedicineModal()">✕</button>
+            </div>
+
+            <form id="addMedicineForm" onsubmit="handleSaveNewMedicine(event)">
+                <div class="modal-body-vibrant">
+                    <div class="form-group">
+                        <label>Medicine Name <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="newMedName" placeholder="e.g. Arnica Montana, Nux Vomica, Thuja Occ" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Available Potencies (separated by comma)</label>
+                        <input type="text" id="newMedPotencies" placeholder="e.g. 30C, 200C, 1M, Q, 6X" value="30C, 200C, 1M, Q">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Default Dosage</label>
+                            <input type="text" id="newMedDosage" placeholder="e.g. 4 pills, 10 drops" value="4 pills">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Default Frequency</label>
+                            <input type="text" id="newMedFrequency" placeholder="e.g. 3 times daily" value="3 times daily">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Default Duration</label>
+                            <input type="text" id="newMedDuration" placeholder="e.g. 7 Days, 15 Days" value="7 Days">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Indication / Clinical Note</label>
+                            <input type="text" id="newMedIndication" placeholder="e.g. For pain, cough, digestion...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-vibrant">
+                    <button type="button" class="btn btn-outline" onclick="closeAddMedicineModal()">Cancel</button>
+                    <button type="submit" class="btn btn-sapphire" id="saveNewMedBtn">
+                        ✓ Save Medicine to Database
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
