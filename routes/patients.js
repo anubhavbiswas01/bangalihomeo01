@@ -73,11 +73,15 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         if (useMongo()) {
-            const patients = await mongo.getAllPatients(req.query.all === 'true');
-            return res.json(patients);
+            try {
+                const patients = await mongo.getAllPatients(req.query.all === 'true');
+                return res.json(patients);
+            } catch (mErr) {
+                console.warn('⚠️ MongoDB getAllPatients error, falling back:', mErr.message);
+            }
         }
 
-        if (useGSheet()) {
+        if (gsheet.isConfigured()) {
             const patients = await gsheet.getAllPatients();
             return res.json(patients);
         }
@@ -99,11 +103,15 @@ router.get('/', async (req, res) => {
 router.get('/stats', async (req, res) => {
     try {
         if (useMongo()) {
-            const stats = await mongo.getStats();
-            return res.json(stats);
+            try {
+                const stats = await mongo.getStats();
+                return res.json(stats);
+            } catch (mErr) {
+                console.warn('⚠️ MongoDB stats error, falling back:', mErr.message);
+            }
         }
 
-        if (useGSheet()) {
+        if (gsheet.isConfigured()) {
             const stats = await gsheet.getStats();
             return res.json(stats);
         }
@@ -132,11 +140,15 @@ router.get('/search', async (req, res) => {
         const showAll = req.query.all === 'true';
 
         if (useMongo()) {
-            const patients = await mongo.searchPatients(q, showAll);
-            return res.json(patients);
+            try {
+                const patients = await mongo.searchPatients(q, showAll);
+                return res.json(patients);
+            } catch (mErr) {
+                console.warn('⚠️ MongoDB search error, falling back:', mErr.message);
+            }
         }
 
-        if (useGSheet()) {
+        if (gsheet.isConfigured()) {
             const patients = await gsheet.searchPatients(q, showAll);
             return res.json(patients);
         }
@@ -182,14 +194,17 @@ router.get('/search', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         if (useMongo()) {
-            const patient = await mongo.getPatientById(req.params.id);
-            if (!patient) {
-                return res.status(404).json({ error: 'Patient not found.' });
+            try {
+                const patient = await mongo.getPatientById(req.params.id);
+                if (patient) {
+                    return res.json(patient);
+                }
+            } catch (mErr) {
+                console.warn('⚠️ MongoDB getPatientById error, falling back:', mErr.message);
             }
-            return res.json(patient);
         }
 
-        if (useGSheet()) {
+        if (gsheet.isConfigured()) {
             const patient = await gsheet.getPatientById(req.params.id);
             if (!patient || patient.error) {
                 return res.status(404).json({ error: 'Patient not found.' });

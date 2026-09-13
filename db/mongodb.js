@@ -10,19 +10,39 @@ const path = require('path');
 let cachedClient = null;
 let cachedDb = null;
 
-function getMongoUri() {
-    if (process.env.MONGODB_URI && process.env.MONGODB_URI.trim()) {
-        return process.env.MONGODB_URI.trim();
-    }
+function sanitizeMongoUri(rawUri) {
+    if (!rawUri) return '';
     try {
-        const envPath = path.join(__dirname, '..', '.env');
-        if (fs.existsSync(envPath)) {
-            const content = fs.readFileSync(envPath, 'utf8');
-            const match = content.match(/MONGODB_URI=["']?(mongodb(\+srv)?:\/\/[^"'\r\n]+)["']?/);
-            if (match) return match[1].trim();
+        // If URI contains unescaped @ in password (e.g. user:pass@word@cluster...)
+        const match = rawUri.match(/^(mongodb(?:\+srv)?:\/\/)([^:]+):(.+)@([^@]+)$/);
+        if (match) {
+            const scheme = match[1];
+            const user = match[2];
+            const rawPass = match[3];
+            const hostAndRest = match[4];
+            // Encode @ as %40 if not already encoded
+            const encodedPass = rawPass.replace(/@/g, '%40');
+            return `${scheme}${user}:${encodedPass}@${hostAndRest}`;
         }
     } catch (_) {}
-    return '';
+    return rawUri;
+}
+
+function getMongoUri() {
+    let uri = '';
+    if (process.env.MONGODB_URI && process.env.MONGODB_URI.trim()) {
+        uri = process.env.MONGODB_URI.trim();
+    } else {
+        try {
+            const envPath = path.join(__dirname, '..', '.env');
+            if (fs.existsSync(envPath)) {
+                const content = fs.readFileSync(envPath, 'utf8');
+                const match = content.match(/MONGODB_URI=["']?(mongodb(\+srv)?:\/\/[^"'\r\n]+)["']?/);
+                if (match) uri = match[1].trim();
+            }
+        } catch (_) {}
+    }
+    return sanitizeMongoUri(uri);
 }
 
 function isConfigured() {
