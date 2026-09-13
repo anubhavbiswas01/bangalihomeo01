@@ -1548,8 +1548,10 @@ function filterAppointments() {
             const name = (appt.name || '').toLowerCase();
             const mobile = (appt.mobile || '').toLowerCase();
             const address = (appt.address || '').toLowerCase();
+            const ptId = (appt.patient_id || '').toLowerCase();
+            const type = (appt.patient_type || '').toLowerCase();
             const reason = (appt.reason || '').toLowerCase();
-            if (!ref.includes(search) && !name.includes(search) && !mobile.includes(search) && !address.includes(search) && !reason.includes(search)) {
+            if (!ref.includes(search) && !name.includes(search) && !mobile.includes(search) && !address.includes(search) && !ptId.includes(search) && !type.includes(search) && !reason.includes(search)) {
                 return false;
             }
         }
@@ -1587,6 +1589,7 @@ function renderAppointmentsTable(list = null) {
         const statusClass = `appt-status-${(appt.status || 'pending').toLowerCase()}`;
         const cleanPhone = escapeHtml(appt.mobile || '');
         const refNo = escapeHtml(appt.reference_no || '');
+        const isExisting = appt.patient_type === 'existing';
         
         return `
             <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -1597,10 +1600,18 @@ function renderAppointmentsTable(list = null) {
                     </div>
                 </td>
                 <td style="padding: 0.75rem;">
-                    <strong style="color: #0f172a; font-size: 0.95rem;">${escapeHtml(appt.name)}</strong>
-                    <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">
-                        Age: <strong>${appt.age}</strong> &nbsp;|&nbsp; Gender: <strong>${escapeHtml(appt.gender)}</strong>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <strong style="color: #0f172a; font-size: 0.95rem;">${escapeHtml(appt.name)}</strong>
+                        ${isExisting 
+                            ? `<span style="background: #e0f2fe; color: #0369a1; font-size: 0.72rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid #bae6fd;">🔄 PT: ${escapeHtml(appt.patient_id || 'ID')}</span>` 
+                            : `<span style="background: #f0fdf4; color: #15803d; font-size: 0.72rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid #bbf7d0;">🌱 New</span>`
+                        }
                     </div>
+                    ${(appt.age || appt.gender) ? `
+                        <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">
+                            ${appt.age ? `Age: <strong>${appt.age}</strong>` : ''} ${appt.gender ? `&nbsp;|&nbsp; Gender: <strong>${escapeHtml(appt.gender)}</strong>` : ''}
+                        </div>
+                    ` : ''}
                     ${appt.address ? `<div style="color: #0f766e; font-size: 0.78rem; margin-top: 2px; font-weight: 500;">📍 ${escapeHtml(appt.address)}</div>` : ''}
                 </td>
                 <td style="padding: 0.75rem;">

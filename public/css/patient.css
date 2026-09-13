@@ -554,6 +554,45 @@ body {
     padding: 2.5rem;
 }
 
+/* Patient Type Selection Tabs */
+.patient-type-tabs {
+    display: flex;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 12px;
+    margin-bottom: 1.75rem;
+    gap: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.type-tab-btn {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.type-tab-btn:hover {
+    color: #0f766e;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.type-tab-btn.active {
+    background: #ffffff;
+    color: #0f766e;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
 .form-group-patient {
     margin-bottom: 1.5rem;
 }

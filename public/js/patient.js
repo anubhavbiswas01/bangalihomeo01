@@ -46,6 +46,33 @@ function initMobileNav() {
 }
 
 // ── 3. Appointment Booking Form Submission ──
+// ── 3. Patient Type Selection & Booking Form Handler ──
+let currentPatientType = 'new';
+
+function setPatientType(type) {
+    currentPatientType = type;
+    const btnNew = document.getElementById('btnTypeNew');
+    const btnExisting = document.getElementById('btnTypeExisting');
+    const newSection = document.getElementById('newPatientSection');
+    const existingSection = document.getElementById('existingPatientSection');
+    const typeInput = document.getElementById('patientTypeInput');
+
+    if (typeInput) typeInput.value = type;
+
+    if (type === 'existing') {
+        if (btnExisting) btnExisting.classList.add('active');
+        if (btnNew) btnNew.classList.remove('active');
+        if (newSection) newSection.style.display = 'none';
+        if (existingSection) existingSection.style.display = 'block';
+    } else {
+        if (btnNew) btnNew.classList.add('active');
+        if (btnExisting) btnExisting.classList.remove('active');
+        if (newSection) newSection.style.display = 'block';
+        if (existingSection) existingSection.style.display = 'none';
+    }
+    clearErrors();
+}
+
 function initBookingForm() {
     const form = document.getElementById('appointmentBookingForm');
     if (!form) return;
@@ -56,7 +83,10 @@ function initBookingForm() {
         // Clear previous errors
         clearErrors();
 
-        // Gather form fields
+        const patientType = (document.getElementById('patientTypeInput')?.value || currentPatientType || 'new');
+        const isExisting = (patientType === 'existing');
+
+        const ptIdInput = document.getElementById('existingPatientId');
         const nameInput = document.getElementById('patientFullName');
         const ageInput = document.getElementById('patientAge');
         const genderInput = document.getElementById('patientGender');
@@ -67,42 +97,63 @@ function initBookingForm() {
         const submitBtn = document.getElementById('submitBookingBtn');
         const submitBtnText = document.getElementById('submitBtnText');
 
-        const name = (nameInput.value || '').trim();
-        const age = parseInt(ageInput.value, 10);
-        const gender = (genderInput.value || '').trim();
-        const rawMobile = (mobileInput.value || '').trim();
-        const address = addressInput ? (addressInput.value || '').trim() : '';
-        const preferredDate = (dateInput.value || '').trim();
-        const reason = (reasonInput.value || '').trim();
+        const rawMobile = (mobileInput?.value || '').trim();
+        const preferredDate = (dateInput?.value || '').trim();
+        const reason = (reasonInput?.value || '').trim();
+
+        let ptId = '';
+        let name = '';
+        let age = null;
+        let gender = '';
+        let address = '';
 
         let hasError = false;
 
-        // Validation 1: Full Name
-        if (!name || name.length < 2) {
-            showError('patientFullName', 'Please enter your full name (at least 2 letters).');
-            hasError = true;
+        if (isExisting) {
+            ptId = (ptIdInput?.value || '').trim();
+            if (!ptId) {
+                showError('existingPatientId', 'Please enter your Patient ID (PT ID from your prescription slip).');
+                hasError = true;
+            }
+        } else {
+            name = (nameInput?.value || '').trim();
+            age = parseInt(ageInput?.value, 10);
+            gender = (genderInput?.value || '').trim();
+            address = (addressInput?.value || '').trim();
+
+            // Validation 1: Full Name
+            if (!name || name.length < 2) {
+                showError('patientFullName', 'Please enter your full name (at least 2 letters).');
+                hasError = true;
+            }
+
+            // Validation 2: Age
+            if (isNaN(age) || age < 1 || age > 120) {
+                showError('patientAge', 'Please enter a valid age between 1 and 120.');
+                hasError = true;
+            }
+
+            // Validation 3: Gender
+            if (!gender || !['Male', 'Female', 'Other'].includes(gender)) {
+                showError('patientGender', 'Please select a gender.');
+                hasError = true;
+            }
+
+            // Validation 4: Address (Compulsory)
+            if (!address || address.length < 2) {
+                showError('patientAddress', 'Address is compulsory. Please enter your Village / City / District.');
+                hasError = true;
+            }
         }
 
-        // Validation 2: Age
-        if (isNaN(age) || age < 1 || age > 120) {
-            showError('patientAge', 'Please enter a valid age between 1 and 120.');
-            hasError = true;
-        }
-
-        // Validation 3: Gender
-        if (!gender || !['Male', 'Female', 'Other'].includes(gender)) {
-            showError('patientGender', 'Please select a gender.');
-            hasError = true;
-        }
-
-        // Validation 4: Mobile (Indian 10-digit format)
+        // Mobile Number (Required for both)
         const cleanMobile = rawMobile.replace(/[\s\-+]/g, '').slice(-10);
         if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
             showError('patientMobile', 'Please enter a valid 10-digit mobile number (starting with 6, 7, 8, or 9).');
             hasError = true;
         }
 
-        // Validation 5: Preferred Date
+        // Preferred Date (Required for both)
         if (!preferredDate) {
             showError('preferredDate', 'Please select your preferred consultation date.');
             hasError = true;
@@ -111,11 +162,7 @@ function initBookingForm() {
             hasError = true;
         }
 
-        // Validation 6: Reason for Visit
-        if (!reason || reason.length < 3) {
-            showError('patientReason', 'Please briefly describe your symptoms or reason for consultation.');
-            hasError = true;
-        }
+        // Note: Symptoms / Problems is OPTIONAL for both!
 
         if (hasError) return;
 
@@ -128,6 +175,8 @@ function initBookingForm() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    patient_type: patientType,
+                    patient_id: ptId,
                     name,
                     age,
                     gender,
@@ -147,17 +196,20 @@ function initBookingForm() {
             // Success: Display Confirmation Screen
             displayConfirmation({
                 reference_no: data.reference_no,
-                name: data.appointment.name,
-                age: data.appointment.age,
-                gender: data.appointment.gender,
-                mobile: data.appointment.mobile,
+                patient_type: data.appointment.patient_type || patientType,
+                patient_id: data.appointment.patient_id || ptId,
+                name: data.appointment.name || name,
+                age: data.appointment.age || age,
+                gender: data.appointment.gender || gender,
+                mobile: data.appointment.mobile || cleanMobile,
                 address: data.appointment.address || address,
-                preferred_date: data.appointment.preferred_date,
-                reason: data.appointment.reason
+                preferred_date: data.appointment.preferred_date || preferredDate,
+                reason: data.appointment.reason || reason
             });
 
             // Reset form
             form.reset();
+            setPatientType('new');
             initDatePicker();
 
         } catch (err) {
@@ -200,16 +252,59 @@ function displayConfirmation(data) {
     const modal = document.getElementById('confirmModal');
     if (!modal) return;
 
+    const isExisting = (data.patient_type === 'existing');
+
     document.getElementById('confRefNumber').textContent = data.reference_no;
-    document.getElementById('confPatientName').textContent = data.name;
-    document.getElementById('confPatientDemographics').textContent = `${data.age} yrs / ${data.gender}`;
-    document.getElementById('confPatientMobile').textContent = data.mobile;
-    const addrEl = document.getElementById('confAddress');
-    if (addrEl) {
-        addrEl.textContent = data.address || 'Not specified';
+
+    const catEl = document.getElementById('confPatientCategory');
+    if (catEl) catEl.textContent = isExisting ? '🩺 Existing Patient (Follow-up)' : '🌱 New Patient';
+
+    const ptIdRow = document.getElementById('confPtIdRow');
+    const ptIdEl = document.getElementById('confPtId');
+    if (ptIdRow && ptIdEl) {
+        if (isExisting && data.patient_id) {
+            ptIdEl.textContent = data.patient_id;
+            ptIdRow.style.display = 'flex';
+        } else {
+            ptIdRow.style.display = 'none';
+        }
     }
+
+    const nameRow = document.getElementById('confNameRow');
+    if (nameRow) {
+        if (data.name) {
+            document.getElementById('confPatientName').textContent = data.name;
+            nameRow.style.display = 'flex';
+        } else {
+            nameRow.style.display = isExisting ? 'none' : 'flex';
+        }
+    }
+
+    const demoRow = document.getElementById('confDemographicsRow');
+    if (demoRow) {
+        if (data.age && data.gender) {
+            document.getElementById('confPatientDemographics').textContent = `${data.age} yrs / ${data.gender}`;
+            demoRow.style.display = 'flex';
+        } else {
+            demoRow.style.display = 'none';
+        }
+    }
+
+    document.getElementById('confPatientMobile').textContent = data.mobile;
+
+    const addrRow = document.getElementById('confAddressRow');
+    if (addrRow) {
+        if (data.address) {
+            document.getElementById('confAddress').textContent = data.address;
+            addrRow.style.display = 'flex';
+        } else {
+            addrRow.style.display = isExisting ? 'none' : 'flex';
+            document.getElementById('confAddress').textContent = 'Not specified';
+        }
+    }
+
     document.getElementById('confPreferredDate').textContent = formatDateReadable(data.preferred_date);
-    document.getElementById('confReason').textContent = data.reason;
+    document.getElementById('confReason').textContent = data.reason || 'General Follow-up / Consultation';
 
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';

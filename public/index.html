@@ -189,34 +189,64 @@
                 </div>
 
                 <form id="appointmentBookingForm" class="booking-form" novalidate>
-                    <!-- Full Name -->
-                    <div class="form-group-patient">
-                        <label for="patientFullName">Full Name <span class="req">*</span></label>
-                        <input type="text" id="patientFullName" class="form-input-patient" placeholder="e.g. Ramesh Kumar Sharma" required autocomplete="name">
-                        <div class="field-error-msg"></div>
+                    <!-- Patient Category Tabs: New vs Existing Patient -->
+                    <div class="patient-type-tabs">
+                        <button type="button" class="type-tab-btn active" id="btnTypeNew" onclick="setPatientType('new')">
+                            🌱 New Patient
+                        </button>
+                        <button type="button" class="type-tab-btn" id="btnTypeExisting" onclick="setPatientType('existing')">
+                            🩺 Existing Patient (Follow-up)
+                        </button>
                     </div>
+                    <input type="hidden" id="patientTypeInput" value="new">
 
-                    <!-- Age & Gender -->
-                    <div class="input-row-patient">
+                    <!-- ── Existing Patient Section (Only Patient ID required) ── -->
+                    <div id="existingPatientSection" style="display: none;">
                         <div class="form-group-patient">
-                            <label for="patientAge">Age (Years) <span class="req">*</span></label>
-                            <input type="number" id="patientAge" class="form-input-patient" placeholder="e.g. 42" min="1" max="120" required>
-                            <div class="field-error-msg"></div>
-                        </div>
-
-                        <div class="form-group-patient">
-                            <label for="patientGender">Gender <span class="req">*</span></label>
-                            <select id="patientGender" class="form-select-patient" required>
-                                <option value="" disabled selected>Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <label for="existingPatientId">Patient ID (PT ID) <span class="req">*</span> <span style="font-size: 0.8rem; font-weight: normal; color: #64748b;">(found on your prescription slip)</span></label>
+                            <input type="text" id="existingPatientId" class="form-input-patient" placeholder="e.g. P00042 or 42">
                             <div class="field-error-msg"></div>
                         </div>
                     </div>
 
-                    <!-- Mobile Number & Preferred Date -->
+                    <!-- ── New Patient Section (Demographics + Compulsory Address) ── -->
+                    <div id="newPatientSection">
+                        <!-- Full Name -->
+                        <div class="form-group-patient">
+                            <label for="patientFullName">Full Name <span class="req">*</span></label>
+                            <input type="text" id="patientFullName" class="form-input-patient" placeholder="e.g. Ramesh Kumar Sharma" autocomplete="name">
+                            <div class="field-error-msg"></div>
+                        </div>
+
+                        <!-- Age & Gender -->
+                        <div class="input-row-patient">
+                            <div class="form-group-patient">
+                                <label for="patientAge">Age (Years) <span class="req">*</span></label>
+                                <input type="number" id="patientAge" class="form-input-patient" placeholder="e.g. 42" min="1" max="120">
+                                <div class="field-error-msg"></div>
+                            </div>
+
+                            <div class="form-group-patient">
+                                <label for="patientGender">Gender <span class="req">*</span></label>
+                                <select id="patientGender" class="form-select-patient">
+                                    <option value="" disabled selected>Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="field-error-msg"></div>
+                            </div>
+                        </div>
+
+                        <!-- Address / Village (Compulsory!) -->
+                        <div class="form-group-patient">
+                            <label for="patientAddress">Address (Village / Mohalla, Town / District) <span class="req">*</span></label>
+                            <input type="text" id="patientAddress" class="form-input-patient" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani" autocomplete="street-address">
+                            <div class="field-error-msg"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── Common Fields: Phone & Date ── -->
                     <div class="input-row-patient">
                         <div class="form-group-patient">
                             <label for="patientMobile">Mobile Number <span class="req">*</span></label>
@@ -231,17 +261,10 @@
                         </div>
                     </div>
 
-                    <!-- Address / Village -->
+                    <!-- ── Problems / Symptoms (Optional - NOT compulsory) ── -->
                     <div class="form-group-patient">
-                        <label for="patientAddress">Address / Location <span style="font-size: 0.8rem; font-weight: 500; color: #64748b;">(Village / Mohalla, Town / District)</span></label>
-                        <input type="text" id="patientAddress" class="form-input-patient" placeholder="e.g. Sarisab Pahi, Pandual, Madhubani" autocomplete="street-address">
-                        <div class="field-error-msg"></div>
-                    </div>
-
-                    <!-- Reason for Visit -->
-                    <div class="form-group-patient">
-                        <label for="patientReason">Reason for Visit / Chief Symptoms <span class="req">*</span></label>
-                        <textarea id="patientReason" class="form-textarea-patient" rows="3" placeholder="Briefly describe your symptoms or reason for visit (e.g. Chronic acidity, joint pain, cough, general consultation)..." required></textarea>
+                        <label for="patientReason" id="reasonFieldLabel">Problems / Symptoms <span style="font-size: 0.8rem; font-weight: normal; color: #64748b;">(Optional)</span></label>
+                        <textarea id="patientReason" class="form-textarea-patient" rows="3" placeholder="Briefly describe your symptoms or reason for visit (optional)..."></textarea>
                         <div class="field-error-msg"></div>
                     </div>
 
@@ -385,11 +408,19 @@
             </div>
 
             <div class="confirm-details-list">
-                <div class="confirm-details-row">
+                <div class="confirm-details-row" id="confCategoryRow">
+                    <span>Patient Category:</span>
+                    <span id="confPatientCategory">New Patient</span>
+                </div>
+                <div class="confirm-details-row" id="confPtIdRow" style="display: none;">
+                    <span>Patient ID (PT ID):</span>
+                    <span id="confPtId" style="color: #0369a1;">--</span>
+                </div>
+                <div class="confirm-details-row" id="confNameRow">
                     <span>Patient Name:</span>
                     <span id="confPatientName">--</span>
                 </div>
-                <div class="confirm-details-row">
+                <div class="confirm-details-row" id="confDemographicsRow">
                     <span>Age / Gender:</span>
                     <span id="confPatientDemographics">--</span>
                 </div>
@@ -406,7 +437,7 @@
                     <span id="confPreferredDate">--</span>
                 </div>
                 <div class="confirm-details-row">
-                    <span>Reason for Visit:</span>
+                    <span>Problems / Symptoms:</span>
                     <span id="confReason">--</span>
                 </div>
             </div>

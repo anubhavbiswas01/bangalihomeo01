@@ -12,32 +12,16 @@ function getTodayIST() {
 // ── POST /api/appointments — PUBLIC: Book an appointment ──
 router.post('/', async (req, res) => {
     try {
-        const { name, age, gender, mobile, address, preferred_date, reason } = req.body || {};
+        const { patient_type, patient_id, name, age, gender, mobile, address, preferred_date, reason } = req.body || {};
+        const isExisting = (patient_type === 'existing');
 
-        // 1. Full Name validation
-        if (!name || typeof name !== 'string' || name.trim().length < 2) {
-            return res.status(400).json({ error: 'Please enter a valid Full Name (at least 2 characters).' });
-        }
-
-        // 2. Age validation
-        const parsedAge = parseInt(age, 10);
-        if (isNaN(parsedAge) || parsedAge < 1 || parsedAge > 120) {
-            return res.status(400).json({ error: 'Please enter a valid age between 1 and 120.' });
-        }
-
-        // 3. Gender validation
-        const validGenders = ['Male', 'Female', 'Other'];
-        if (!gender || !validGenders.includes(gender)) {
-            return res.status(400).json({ error: 'Please select a valid gender (Male, Female, or Other).' });
-        }
-
-        // 4. Mobile Number validation (Indian 10-digit format starting with 6-9)
+        // 1. Mobile Number validation (Indian 10-digit format starting with 6-9)
         const cleanMobile = String(mobile || '').replace(/[\s\-+]/g, '').slice(-10);
         if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
             return res.status(400).json({ error: 'Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).' });
         }
 
-        // 5. Preferred Date validation (YYYY-MM-DD, cannot be in the past)
+        // 2. Preferred Date validation (YYYY-MM-DD, cannot be in the past)
         if (!preferred_date || !/^\d{4}-\d{2}-\d{2}$/.test(preferred_date)) {
             return res.status(400).json({ error: 'Please select a valid preferred date.' });
         }
@@ -46,25 +30,77 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Appointment date cannot be in the past. Please select today or a future date.' });
         }
 
-        // 6. Reason for Visit validation
-        if (!reason || typeof reason !== 'string' || reason.trim().length < 3) {
-            return res.status(400).json({ error: 'Please enter the reason for your visit (e.g. Fever, Acidity, Joint Pain, Checkup).' });
-        }
-
         if (!mongo.isConfigured()) {
             return res.status(503).json({ error: 'Database service is currently unavailable. Please call the clinic directly at 93042 75795.' });
         }
 
-        const cleanAddress = address && typeof address === 'string' ? address.trim() : '';
+        let apptName = '';
+        let apptAge = null;
+        let apptGender = '';
+        let apptAddress = '';
+        let cleanPatientId = '';
+
+        if (isExisting) {
+            cleanPatientId = String(patient_id || '').trim();
+            if (!cleanPatientId) {
+                return res.status(400).json({ error: 'Please enter your Patient ID (PT ID) as written on your prescription.' });
+            }
+
+            // Attempt to look up patient in DB
+            try {
+                const existingPt = await mongo.getPatient(cleanPatientId);
+                if (existingPt) {
+                    apptName = existingPt.name || '';
+                    apptAge = existingPt.age || null;
+                    apptGender = existingPt.gender || '';
+                    apptAddress = existingPt.address || '';
+                }
+            } catch (e) {
+                console.warn('Could not lookup patient by ID:', e.message);
+            }
+
+            if (!apptName) {
+                apptName = `Existing Patient (${cleanPatientId})`;
+            }
+        } else {
+            // New Patient validation
+            if (!name || typeof name !== 'string' || name.trim().length < 2) {
+                return res.status(400).json({ error: 'Please enter a valid Full Name (at least 2 characters).' });
+            }
+            apptName = name.trim();
+
+            const parsedAge = parseInt(age, 10);
+            if (isNaN(parsedAge) || parsedAge < 1 || parsedAge > 120) {
+                return res.status(400).json({ error: 'Please enter a valid age between 1 and 120.' });
+            }
+            apptAge = parsedAge;
+
+            const validGenders = ['Male', 'Female', 'Other'];
+            if (!gender || !validGenders.includes(gender)) {
+                return res.status(400).json({ error: 'Please select a valid gender (Male, Female, or Other).' });
+            }
+            apptGender = gender;
+
+            // Address is now compulsory for new patients
+            if (!address || typeof address !== 'string' || address.trim().length < 2) {
+                return res.status(400).json({ error: 'Address is compulsory. Please enter your Village / Mohalla, Town / District.' });
+            }
+            apptAddress = address.trim();
+        }
+
+        // Reason / Symptoms is now optional
+        const cleanReason = reason && typeof reason === 'string' ? reason.trim() : '';
 
         const appointment = await mongo.createAppointment({
-            name: name.trim(),
-            age: parsedAge,
-            gender: gender,
+            patient_type: isExisting ? 'existing' : 'new',
+            patient_id: cleanPatientId,
+            name: apptName,
+            age: apptAge,
+            gender: apptGender,
             mobile: cleanMobile,
-            address: cleanAddress,
+            address: apptAddress,
             preferred_date: preferred_date,
-            reason: reason.trim()
+            reason: cleanReason
         });
 
         return res.status(201).json({
@@ -73,6 +109,8 @@ router.post('/', async (req, res) => {
             reference_no: appointment.reference_no,
             appointment: {
                 reference_no: appointment.reference_no,
+                patient_type: appointment.patient_type,
+                patient_id: appointment.patient_id,
                 name: appointment.name,
                 age: appointment.age,
                 gender: appointment.gender,
