@@ -295,7 +295,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: top center;
+    object-position: center 55%;
 }
 
 .hero-doc-card h3 {
@@ -385,7 +385,7 @@ body {
     width: 100%;
     height: 420px;
     object-fit: cover;
-    object-position: top center;
+    object-position: center 50%;
     display: block;
 }
 
