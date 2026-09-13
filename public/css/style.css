@@ -1468,6 +1468,17 @@ body {
     box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
 }
 
+.navbar-logo-img {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #0f766e;
+    box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+    background: #ffffff;
+    flex-shrink: 0;
+}
+
 .brand-title {
     color: #042f2e !important;
     font-size: 1.25rem;

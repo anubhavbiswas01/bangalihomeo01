@@ -88,6 +88,17 @@ body {
     box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
 }
 
+.brand-logo-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #0f766e;
+    box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+    background: #ffffff;
+    flex-shrink: 0;
+}
+
 .brand-text h1 {
     font-size: 1.15rem;
     font-weight: 800;
