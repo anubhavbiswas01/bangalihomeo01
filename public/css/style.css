@@ -3200,10 +3200,35 @@ body {
     border-radius: 8px;
     padding: 0.5rem 0.65rem;
     display: grid;
-    grid-template-columns: 2.2fr 1.1fr 1.3fr 1fr auto;
-    gap: 0.5rem;
+    grid-template-columns: 2fr 1fr 1fr 1.1fr 1fr auto;
+    gap: 0.45rem;
     align-items: center;
     transition: border-color 0.15s ease;
+}
+
+.med-row-labels {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.1fr 1fr 32px;
+    gap: 0.45rem;
+    padding: 0 0.65rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.med-input-power {
+    font-weight: 700;
+    color: #4338ca;
+    background: #eef2ff !important;
+    border-color: #c7d2fe !important;
+}
+
+.med-input-power:focus {
+    border-color: #6366f1 !important;
+    background: #ffffff !important;
 }
 
 .medicine-row-card:focus-within {

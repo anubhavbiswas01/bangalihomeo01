@@ -994,19 +994,31 @@ async function loadMedicinesCatalog() {
 function updateMedicineDatalist() {
     const datalist = document.getElementById('medicineDatalist');
     if (!datalist) return;
-    datalist.innerHTML = cachedMedicinesCatalog.map(m => `
-        <option value="${escapeHtml(m.name)}">${m.indication ? `— ${escapeHtml(m.indication)}` : ''}</option>
-    `).join('');
+    const options = [];
+    cachedMedicinesCatalog.forEach(m => {
+        // Base medicine name
+        options.push(`<option value="${escapeHtml(m.name)}">${m.indication ? `— ${escapeHtml(m.indication)}` : ''}</option>`);
+        // Expanded with common powers/potencies
+        const potencies = Array.isArray(m.common_potencies) ? m.common_potencies : (m.common_potencies ? String(m.common_potencies).split(',') : []);
+        potencies.forEach(p => {
+            const cleanP = p.trim();
+            if (cleanP) {
+                options.push(`<option value="${escapeHtml(m.name)} ${escapeHtml(cleanP)}">Power: ${escapeHtml(cleanP)}</option>`);
+            }
+        });
+    });
+    datalist.innerHTML = options.join('');
 }
 
-function addMedicineRow(name = '', dosage = '4 pills', frequency = '3 times daily', duration = '7 Days') {
+function addMedicineRow(name = '', power = '200C', dosage = '4 pills', frequency = '3 times daily', duration = '7 Days') {
     const container = document.getElementById('medicinesListContainer');
     if (!container) return;
     const row = document.createElement('div');
     row.className = 'medicine-row-card';
     row.innerHTML = `
         <input type="text" class="med-input med-input-name" placeholder="Medicine Name (e.g. Arnica Montana)" value="${escapeHtml(name)}" list="medicineDatalist" autocomplete="off">
-        <input type="text" class="med-input med-input-dosage" placeholder="Dose (e.g. 4 pills, 10 drops)" value="${escapeHtml(dosage)}">
+        <input type="text" class="med-input med-input-power" placeholder="Power (e.g. 200C)" value="${escapeHtml(power)}" list="powerDatalist" autocomplete="off">
+        <input type="text" class="med-input med-input-dosage" placeholder="Dose (e.g. 4 pills)" value="${escapeHtml(dosage)}">
         <input type="text" class="med-input med-input-frequency" placeholder="Frequency (e.g. 3 times daily)" value="${escapeHtml(frequency)}">
         <input type="text" class="med-input med-input-duration" placeholder="Duration (e.g. 7 Days)" value="${escapeHtml(duration)}">
         <button type="button" class="btn-del-med" onclick="this.closest('.medicine-row-card').remove()" title="Remove Medicine">✕</button>
@@ -1014,11 +1026,25 @@ function addMedicineRow(name = '', dosage = '4 pills', frequency = '3 times dail
     container.appendChild(row);
 
     const nameInput = row.querySelector('.med-input-name');
+    const powerInput = row.querySelector('.med-input-power');
+
     if (nameInput) {
-        // Auto-fill default dosage & frequency when matching medicine is selected
         nameInput.addEventListener('input', () => {
-            const val = nameInput.value.trim().toLowerCase();
-            const matched = cachedMedicinesCatalog.find(m => m.name.toLowerCase() === val);
+            let val = nameInput.value.trim();
+            if (!val) return;
+
+            // Check if user selected suggestion with power attached (e.g. "Arnica Montana 200C")
+            const powerRegex = /\b(Q|30C|200C|1M|10M|50M|CM|3X|6X|12X|30X|200X|0\/1|0\/2|0\/3|0\/6)\b/i;
+            const match = val.match(powerRegex);
+            if (match) {
+                const detectedPower = match[0].toUpperCase();
+                const cleanMedName = val.replace(powerRegex, '').trim();
+                nameInput.value = cleanMedName;
+                if (powerInput) powerInput.value = detectedPower;
+                val = cleanMedName;
+            }
+
+            const matched = cachedMedicinesCatalog.find(m => m.name.toLowerCase() === val.toLowerCase());
             if (matched) {
                 const dosageInput = row.querySelector('.med-input-dosage');
                 const freqInput = row.querySelector('.med-input-frequency');
@@ -1026,6 +1052,9 @@ function addMedicineRow(name = '', dosage = '4 pills', frequency = '3 times dail
                 if (dosageInput && matched.default_dosage) dosageInput.value = matched.default_dosage;
                 if (freqInput && matched.default_frequency) freqInput.value = matched.default_frequency;
                 if (durInput && matched.default_duration) durInput.value = matched.default_duration;
+                if (powerInput && (!powerInput.value || powerInput.value === '200C') && Array.isArray(matched.common_potencies) && matched.common_potencies[0]) {
+                    powerInput.value = matched.common_potencies[0];
+                }
             }
         });
         if (!name) nameInput.focus();
@@ -1035,16 +1064,14 @@ function addMedicineRow(name = '', dosage = '4 pills', frequency = '3 times dail
 function applyQuickPotency(potency) {
     const rows = document.querySelectorAll('#medicinesListContainer .medicine-row-card');
     if (rows.length === 0) {
-        addMedicineRow(potency);
+        addMedicineRow('', potency);
         return;
     }
     const lastRow = rows[rows.length - 1];
-    const nameInput = lastRow.querySelector('.med-input-name');
-    if (nameInput) {
-        let val = nameInput.value.trim();
-        val = val.replace(/\b(Q|30C|200C|1M|10M|50M|CM|6X|12X|3X)\b/gi, '').trim();
-        nameInput.value = val ? `${val} ${potency}` : potency;
-        nameInput.focus();
+    const powerInput = lastRow.querySelector('.med-input-power');
+    if (powerInput) {
+        powerInput.value = potency;
+        powerInput.focus();
     }
 }
 
@@ -1233,12 +1260,15 @@ async function savePrescriptionData() {
     const medicines = [];
     medicineRows.forEach(row => {
         const name = row.querySelector('.med-input-name')?.value.trim() || '';
+        const power = row.querySelector('.med-input-power')?.value.trim() || '';
         const dosage = row.querySelector('.med-input-dosage')?.value.trim() || '';
         const frequency = row.querySelector('.med-input-frequency')?.value.trim() || '';
         const duration = row.querySelector('.med-input-duration')?.value.trim() || '';
         if (name) {
+            const fullName = power ? `${name} ${power}` : name;
             medicines.push({
-                medicine_name: name,
+                medicine_name: fullName,
+                power: power,
                 dosage,
                 frequency,
                 duration
