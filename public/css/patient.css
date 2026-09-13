@@ -969,30 +969,147 @@ body {
     text-decoration: underline;
 }
 
-/* ── Print Styles for Appointment Confirmation ── */
+/* ── Print Styles for Appointment Confirmation (STRICT 1-PAGE) ── */
 @media print {
-    body * {
-        visibility: hidden;
+    @page {
+        size: A4 portrait;
+        margin: 10mm 15mm;
     }
-    .confirm-card, .confirm-card * {
-        visibility: visible;
+
+    *, *:before, *:after {
+        box-shadow: none !important;
+        text-shadow: none !important;
     }
-    .confirm-modal-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        background: none;
-        padding: 0;
+
+    html, body {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    .confirm-card {
-        box-shadow: none;
-        border: 1px solid #000;
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-    }
-    .confirm-actions {
+
+    /* Completely detach all website sections so they occupy 0 height */
+    header,
+    nav,
+    section,
+    footer,
+    .patient-nav,
+    .hero-section,
+    .section,
+    .patient-footer,
+    #home,
+    #doctor,
+    #timings,
+    #appointment,
+    #clinic-info,
+    #contact {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .confirm-modal-overlay {
+        display: block !important;
+        position: static !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 600px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .confirm-card {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        box-shadow: none !important;
+        border: 2px solid #0f766e !important;
+        border-radius: 12px !important;
+        padding: 1.25rem 1.75rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        background: #ffffff !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .confirm-card * {
+        visibility: visible !important;
+    }
+
+    .confirm-badge-icon {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 1.4rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .confirm-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+
+    .confirm-subtitle {
+        font-size: 0.85rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .ref-box-highlight {
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 1rem !important;
+        border: 2px solid #16a34a !important;
+        background: #f0fdf4 !important;
+    }
+
+    .ref-box-label {
+        font-size: 0.75rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    .ref-box-number {
+        font-size: 1.65rem !important;
+    }
+
+    .confirm-details-list {
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 1rem !important;
+        background: #f8fafc !important;
+        font-size: 0.88rem !important;
+    }
+
+    .confirm-details-row {
+        padding: 0.25rem 0 !important;
+    }
+
+    .confirm-note {
+        font-size: 0.78rem !important;
+        margin-bottom: 0 !important;
+        line-height: 1.4 !important;
+    }
+
+    .confirm-actions,
+    .btn-print-confirm,
+    .btn-close-confirm {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 }
 
