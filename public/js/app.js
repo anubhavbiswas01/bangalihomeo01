@@ -1688,29 +1688,62 @@ async function handleDeleteAppointment(refNo) {
     }
 }
 
-function convertAppointmentToPatient(refNo) {
-    const appt = cachedAppointments.find(a => a.reference_no === refNo);
-    if (!appt) return;
+async function convertAppointmentToPatient(refNo) {
+    let appt = cachedAppointments.find(a => a.reference_no === refNo);
+
+    // If not found in cache, fetch directly
+    if (!appt) {
+        const token = localStorage.getItem('clinic_auth_token');
+        if (token) {
+            try {
+                const res = await fetch(`/api/appointments?q=${encodeURIComponent(refNo)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const list = await res.json();
+                    if (Array.isArray(list) && list.length > 0) {
+                        appt = list[0];
+                    }
+                }
+            } catch (_) {}
+        }
+    }
+
+    if (!appt) {
+        showToast('❌ Could not find appointment details.');
+        return;
+    }
 
     closeAppointmentsModal();
 
-    // Open Add Patient modal and populate fields
+    const pForm = document.getElementById('patientForm');
+    if (pForm) pForm.reset();
+
+    // Open Modal
     const modal = document.getElementById('patientModal');
     if (modal) modal.classList.add('active');
 
-    const nameInput = document.getElementById('patientName');
-    const ageInput = document.getElementById('patientAge');
-    const genderSelect = document.getElementById('patientGender');
-    const phoneInput = document.getElementById('patientPhone');
-    const addressInput = document.getElementById('patientAddress');
+    // Populate all fields reliably
+    const nameInput = document.getElementById('patientName') || (pForm ? pForm.elements['name'] : null);
+    const ageInput = document.getElementById('patientAge') || (pForm ? pForm.elements['age'] : null);
+    const genderSelect = document.getElementById('patientGender') || (pForm ? pForm.elements['gender'] : null);
+    const phoneInput = document.getElementById('patientPhone') || (pForm ? pForm.elements['phone'] : null);
+    const addressInput = document.getElementById('patientAddress') || (pForm ? pForm.elements['address'] : null);
 
     if (nameInput) nameInput.value = appt.name || '';
     if (ageInput) ageInput.value = appt.age || '';
     if (genderSelect) genderSelect.value = appt.gender || 'Male';
     if (phoneInput) phoneInput.value = appt.mobile || '';
-    if (addressInput) addressInput.value = `Appt Ref: ${refNo} | Reason: ${appt.reason || ''}`;
+    if (addressInput) addressInput.value = `Appt: ${refNo} | ${appt.reason || ''}`;
 
-    showToast(`✓ Pre-filled patient form from appointment ${refNo}`);
+    setTimeout(() => {
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.select();
+        }
+    }, 100);
+
+    showToast(`✓ Pre-filled patient form for ${appt.name} (${refNo})`);
 }
 
 async function handleDoctorLogin(event) {
