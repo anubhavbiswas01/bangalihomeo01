@@ -1835,7 +1835,8 @@ function togglePinVisibility() {
 
 function lockClinicApp() {
     localStorage.removeItem('clinic_auth_token');
-    showLockScreen('OPD Dashboard is locked. Enter PIN to resume.');
+    showToast('✓ Logged out successfully');
+    showLockScreen('You have logged out. Enter Doctor PIN to log back in.');
 }
 
 async function initAuthAndApp() {

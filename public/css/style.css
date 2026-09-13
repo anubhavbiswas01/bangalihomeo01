@@ -2638,15 +2638,15 @@ body {
     color: #64748b;
 }
 
-/* Navbar lock button */
+/* Navbar logout button */
 .lock-nav-btn {
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    color: #ffffff;
-    padding: 0.4rem 0.85rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.4rem 0.95rem;
     border-radius: 9999px;
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -2655,10 +2655,10 @@ body {
 }
 
 .lock-nav-btn:hover {
-    background: rgba(239, 68, 68, 0.85);
-    border-color: rgba(239, 68, 68, 1);
+    background: #ef4444;
+    border-color: #dc2626;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 /* ─── View Toggle (Table vs Cards) ─── */
