@@ -1,10 +1,10 @@
 /**
  * ============================================================
- * BENGALI HOMEOPATHIC CLINIC — GOOGLE APPS SCRIPT BACKEND
+ * BANGALI HOMEOPATHIC CLINIC — GOOGLE APPS SCRIPT BACKEND
  * ============================================================
  * 
  * INSTRUCTIONS:
- * 1. Create a new Google Sheet (e.g. "Bengali Homeo Clinic DB").
+ * 1. Create a new Google Sheet (e.g. "Bangali Homeo Clinic DB").
  * 2. Click Extensions > Apps Script in the Google Sheet menu.
  * 3. Delete any code in the editor and paste this entire file.
  * 4. Click "Deploy" (top right) > "New deployment".

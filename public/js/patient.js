@@ -1,5 +1,5 @@
 // ============================================================
-// BENGALI HOMEOPATHIC CLINIC — PUBLIC PATIENT SCRIPT
+// BANGALI HOMEOPATHIC CLINIC — PUBLIC PATIENT SCRIPT
 // Handles validation, booking, reference number modal & print
 // ============================================================
 

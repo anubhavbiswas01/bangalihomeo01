@@ -1606,7 +1606,7 @@ function renderAppointmentsTable(list = null) {
                         📞 ${cleanPhone}
                     </a>
                     <div style="margin-top: 3px;">
-                        <a href="https://wa.me/91${cleanPhone}?text=Hello%20${encodeURIComponent(appt.name)}%2C%20regarding%20your%20appointment%20${encodeURIComponent(refNo)}%20at%20Bengali%20Homeopathic%20Clinic..." 
+                        <a href="https://wa.me/91${cleanPhone}?text=Hello%20${encodeURIComponent(appt.name)}%2C%20regarding%20your%20appointment%20${encodeURIComponent(refNo)}%20at%20Bangali%20Homeopathic%20Clinic..." 
                            target="_blank" style="color: #15803d; font-size: 0.75rem; text-decoration: none; font-weight: 600;">
                            💬 WhatsApp
                         </a>
