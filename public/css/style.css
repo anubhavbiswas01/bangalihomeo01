@@ -1432,81 +1432,81 @@ body {
    VIBRANT & COLORFUL CLINIC DASHBOARD STYLES
    ============================================================ */
 .dashboard-body {
-    background: #f0f4f8;
+    background: #f8fafc;
     background-image: 
-        radial-gradient(at 0% 0%, rgba(25, 118, 210, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(46, 125, 50, 0.05) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(15, 118, 110, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(21, 128, 61, 0.04) 0px, transparent 50%);
     min-height: 100vh;
 }
 
-/* ── Vibrant Navbar ── */
+/* ── Vibrant Navbar (Matches Homepage Healthcare Theme) ── */
 .navbar-vibrant {
-    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 45%, #00897b 100%) !important;
-    border-bottom: none !important;
-    height: 70px;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    height: 72px;
     padding: 0 2.5rem;
-    box-shadow: 0 4px 20px rgba(13, 71, 161, 0.25) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
 }
 
 .navbar-vibrant .navbar-brand {
-    gap: 1rem;
+    gap: 0.85rem;
+    text-decoration: none;
 }
 
 .logo-circle {
-    width: 42px;
-    height: 42px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(4px);
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #0f766e, #15803d) !important;
+    border: none !important;
+    border-radius: 12px !important;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 800;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
 }
 
 .brand-title {
-    color: #ffffff !important;
+    color: #042f2e !important;
     font-size: 1.25rem;
     font-weight: 800;
     letter-spacing: -0.2px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-shadow: none !important;
 }
 
 .brand-subtitle {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: #475569 !important;
     font-size: 0.8rem !important;
-    font-weight: 500;
+    font-weight: 600;
     margin-top: 1px;
 }
 
 .navbar-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .phone-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: #e8f5e9;
-    color: #1b5e20;
-    border: 1.5px solid #a5d6a7;
-    padding: 0.35rem 0.9rem;
+    background: #f0fdf4 !important;
+    color: #166534 !important;
+    border: 1.5px solid #bbf7d0 !important;
+    padding: 0.4rem 0.95rem;
     border-radius: 24px;
     font-weight: 700;
     font-size: 0.85rem;
     text-decoration: none;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     transition: all 0.2s;
 }
 
 .phone-chip:hover {
-    background: #c8e6c9;
+    background: #dcfce7 !important;
     transform: translateY(-1px);
 }
 
@@ -1514,12 +1514,12 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    padding: 0.35rem 0.85rem;
+    background: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #86efac !important;
+    padding: 0.4rem 0.9rem;
     border-radius: 20px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.8rem;
     letter-spacing: 0.3px;
 }
@@ -1527,9 +1527,9 @@ body {
 .status-dot {
     width: 8px;
     height: 8px;
-    background: #4caf50;
+    background: #16a34a !important;
     border-radius: 50%;
-    box-shadow: 0 0 8px #4caf50;
+    box-shadow: 0 0 8px #22c55e !important;
     display: inline-block;
     animation: pulseGlow 2s infinite;
 }
@@ -1555,7 +1555,7 @@ body {
     padding: 1.25rem 1.75rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-    border-left: 5px solid #1565c0;
+    border-left: 5px solid #0f766e !important;
 }
 
 .hero-welcome h2 {
@@ -1573,15 +1573,15 @@ body {
 }
 
 .date-badge {
-    background: #eff6ff;
-    color: #1e40af;
-    border: 1.5px solid #bfdbfe;
+    background: #f0fdf4 !important;
+    color: #15803d !important;
+    border: 1.5px solid #86efac !important;
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
     font-weight: 700;
     font-size: 0.875rem;
     white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.08);
+    box-shadow: 0 2px 6px rgba(21, 128, 61, 0.08);
 }
 
 /* ── 4 Vibrant Stat Cards ── */
@@ -1640,36 +1640,36 @@ body {
 
 /* Stat color variants */
 .stat-blue {
-    border-left: 5px solid #0288d1;
-    background: linear-gradient(135deg, #ffffff 60%, #e1f5fe 100%);
+    border-left: 5px solid #0f766e !important;
+    background: linear-gradient(135deg, #ffffff 60%, #f0fdfa 100%) !important;
 }
-.stat-blue .stat-icon { background: #e1f5fe; color: #0288d1; }
-.stat-blue .stat-number { color: #01579b; }
-.stat-blue .stat-label { color: #0288d1; }
+.stat-blue .stat-icon { background: #f0fdfa !important; color: #0f766e !important; }
+.stat-blue .stat-number { color: #042f2e !important; }
+.stat-blue .stat-label { color: #0f766e !important; }
 
 .stat-green {
-    border-left: 5px solid #2e7d32;
-    background: linear-gradient(135deg, #ffffff 60%, #e8f5e9 100%);
+    border-left: 5px solid #15803d !important;
+    background: linear-gradient(135deg, #ffffff 60%, #f0fdf4 100%) !important;
 }
-.stat-green .stat-icon { background: #e8f5e9; color: #2e7d32; }
-.stat-green .stat-number { color: #1b5e20; }
-.stat-green .stat-label { color: #2e7d32; }
+.stat-green .stat-icon { background: #f0fdf4 !important; color: #15803d !important; }
+.stat-green .stat-number { color: #14532d !important; }
+.stat-green .stat-label { color: #15803d !important; }
 
 .stat-amber {
-    border-left: 5px solid #f57c00;
-    background: linear-gradient(135deg, #ffffff 60%, #fff3e0 100%);
+    border-left: 5px solid #d97706 !important;
+    background: linear-gradient(135deg, #ffffff 60%, #fffbeb 100%) !important;
 }
-.stat-amber .stat-icon { background: #fff3e0; color: #f57c00; }
-.stat-amber .stat-number { color: #e65100; }
-.stat-amber .stat-label { color: #ef6c00; }
+.stat-amber .stat-icon { background: #fef3c7 !important; color: #d97706 !important; }
+.stat-amber .stat-number { color: #b45309 !important; }
+.stat-amber .stat-label { color: #d97706 !important; }
 
 .stat-purple {
-    border-left: 5px solid #7b1fa2;
-    background: linear-gradient(135deg, #ffffff 60%, #f3e5f5 100%);
+    border-left: 5px solid #0d9488 !important;
+    background: linear-gradient(135deg, #ffffff 60%, #f0fdfa 100%) !important;
 }
-.stat-purple .stat-icon { background: #f3e5f5; color: #7b1fa2; }
-.stat-purple .stat-number { color: #4a148c; }
-.stat-purple .stat-label { color: #7b1fa2; }
+.stat-purple .stat-icon { background: #f0fdfa !important; color: #0d9488 !important; }
+.stat-purple .stat-number { color: #115e59 !important; }
+.stat-purple .stat-label { color: #0d9488 !important; }
 
 /* ── Vibrant Search Card ── */
 .search-card {
@@ -1677,7 +1677,7 @@ body {
     border-radius: var(--radius-lg) !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06) !important;
     border: 1px solid #e2e8f0 !important;
-    border-top: 4px solid #1565c0 !important;
+    border-top: 4px solid #0f766e !important;
     padding: 1.5rem !important;
     margin-bottom: 2rem !important;
 }
@@ -1737,7 +1737,7 @@ body {
     position: absolute;
     left: 1rem;
     font-size: 1.15rem;
-    color: #1565c0;
+    color: #0f766e;
     pointer-events: none;
 }
 
@@ -1756,9 +1756,9 @@ body {
 
 .search-input-box input:focus {
     outline: none;
-    border-color: #1976d2;
+    border-color: #0f766e;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15);
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.15);
 }
 
 .clear-search-btn {
@@ -1793,19 +1793,19 @@ body {
 }
 
 .btn-sapphire {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    background: linear-gradient(135deg, #0f766e 0%, #15803d 100%) !important;
     color: #ffffff !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.3) !important;
+    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3) !important;
     font-weight: 700 !important;
     transition: all 0.2s !important;
     white-space: nowrap;
 }
 
 .btn-sapphire:hover {
-    background: linear-gradient(135deg, #1e40af 0%, #172554 100%) !important;
+    background: linear-gradient(135deg, #115e59 0%, #166534 100%) !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(29, 78, 216, 0.4) !important;
+    box-shadow: 0 6px 18px rgba(15, 118, 110, 0.4) !important;
 }
 
 /* ── Directory Section ── */
@@ -1836,7 +1836,7 @@ body {
 }
 
 .count-pill {
-    background: #1565c0;
+    background: #0f766e !important;
     color: #ffffff;
     font-size: 0.75rem;
     font-weight: 800;
@@ -1875,10 +1875,10 @@ body {
 }
 
 .filter-tab-btn.active-tab {
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    color: #ffffff;
-    border-color: #1d4ed8;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    background: linear-gradient(135deg, #0f766e, #15803d) !important;
+    color: #ffffff !important;
+    border-color: #0f766e !important;
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
 }
 
 /* ── Vibrant Patient Cards ── */
@@ -2249,7 +2249,7 @@ body {
     align-items: center;
     background: #f8fafc;
     border: 1.5px solid #e2e8f0;
-    border-left: 4px solid #1565c0;
+    border-left: 4px solid #0f766e;
     padding: 0.85rem 1.25rem;
     border-radius: var(--radius);
     margin-bottom: 0.65rem;
@@ -2257,19 +2257,13 @@ body {
 }
 
 .rx-history-card:hover {
-    background: #eff6ff;
-    border-color: #bfdbfe;
+    background: #f0fdfa;
+    border-color: #99f6e4;
 }
 
 .rx-card-info {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
-}
-
-.rx-pill {
-    background: #1d4ed8;
-    color: #ffffff;
     font-size: 0.775rem;
     font-weight: 800;
     padding: 2px 8px;
@@ -2330,7 +2324,7 @@ body {
 }
 
 .modal-header-vibrant {
-    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+    background: linear-gradient(135deg, #0f766e 0%, #15803d 100%) !important;
     color: #ffffff;
     padding: 1.25rem 1.75rem;
     display: flex;
