@@ -714,6 +714,13 @@ body {
 }
 
 /* ── Confirmation Modal / Box ── */
+body.modal-open {
+    overflow: hidden !important;
+    height: 100vh !important;
+    overscroll-behavior: none !important;
+    touch-action: none;
+}
+
 .confirm-modal-overlay {
     position: fixed;
     top: 0;
@@ -722,6 +729,7 @@ body {
     bottom: 0;
     background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -732,6 +740,7 @@ body {
     transition: opacity 0.25s ease;
     overflow-y: auto; /* Enables scrolling on overlay when screen height is small */
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .confirm-modal-overlay.active {
@@ -751,6 +760,7 @@ body {
     max-height: calc(100vh - 3rem);
     overflow-y: auto; /* Scroll inside the card if needed */
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     padding: 1.75rem 2rem;
     box-shadow: var(--shadow-lg);
     text-align: center;

@@ -723,13 +723,21 @@ body {
 }
 
 /* ============================================================
-   MODAL
+   MODAL & OVERLAY SYSTEM (PREVENTS BACKGROUND SCROLL LEAK)
    ============================================================ */
+body.modal-open {
+    overflow: hidden !important;
+    height: 100vh !important;
+    overscroll-behavior: none !important;
+    touch-action: none;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -737,6 +745,10 @@ body {
     opacity: 0;
     visibility: hidden;
     transition: all 0.25s ease;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 1.5rem 1rem;
 }
 
 .modal-overlay.active {
@@ -744,21 +756,34 @@ body {
     visibility: visible;
 }
 
-.modal {
+.modal, .modal-content {
     background: var(--white);
     border-radius: var(--radius-xl);
     padding: 0;
     width: 90%;
-    max-width: 520px;
+    max-width: 540px;
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     transform: translateY(16px) scale(0.98);
     transition: transform 0.25s ease;
     box-shadow: var(--shadow-xl);
+    margin: auto;
 }
 
-.modal-overlay.active .modal {
+.modal-overlay.active .modal,
+.modal-overlay.active .modal-content {
     transform: translateY(0) scale(1);
+}
+
+.modal form, .modal-content form {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1 1 auto;
 }
 
 .modal-header {
@@ -766,6 +791,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -776,6 +802,10 @@ body {
 
 .modal-body {
     padding: 1.25rem 1.75rem 1.75rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
 }
 
 .modal-footer {
@@ -783,6 +813,7 @@ body {
     display: flex;
     gap: 0.75rem;
     justify-content: flex-end;
+    flex-shrink: 0;
 }
 
 /* ============================================================
@@ -2330,7 +2361,12 @@ body {
     background: #ffffff;
     border-radius: var(--radius-xl);
     max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
     overflow: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
@@ -2341,6 +2377,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .modal-title-group {
@@ -2388,6 +2425,10 @@ body {
 
 .modal-body-vibrant {
     padding: 1.5rem 1.75rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
 }
 
 .modal-footer-vibrant {
@@ -2397,6 +2438,7 @@ body {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
+    flex-shrink: 0;
 }
 
 /* ─── Doctor Security Lock Screen ─── */
@@ -2415,6 +2457,9 @@ body {
     justify-content: center;
     padding: 1.25rem;
     transition: opacity 0.25s ease, visibility 0.25s ease;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .lock-screen-overlay.hidden {
@@ -2427,10 +2472,14 @@ body {
     background: #ffffff;
     width: 100%;
     max-width: 390px;
+    max-height: 95vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     border-radius: 20px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
-    overflow: hidden;
     animation: lockPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    margin: auto;
 }
 
 @keyframes lockPopIn {
@@ -3474,6 +3523,8 @@ body {
 .med-catalog-container {
     max-height: 55vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     background: #ffffff;

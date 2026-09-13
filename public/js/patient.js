@@ -307,6 +307,7 @@ function displayConfirmation(data) {
     document.getElementById('confReason').textContent = data.reason || 'General Follow-up / Consultation';
 
     modal.classList.add('active');
+    document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
 
     // Scroll card to top
@@ -317,10 +318,11 @@ function displayConfirmation(data) {
 function closeConfirmationModal() {
     const modal = document.getElementById('confirmModal');
     if (modal) modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
 }
 
-// Close on clicking backdrop
+// Close on clicking backdrop or Escape key
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('confirmModal');
     if (modal) {
@@ -328,6 +330,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === modal) closeConfirmationModal();
         });
     }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeConfirmationModal();
+    });
 });
 
 function printAppointmentSlip() {

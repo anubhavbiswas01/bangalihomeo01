@@ -121,6 +121,23 @@ function extractIdNum(id) {
     return match ? parseInt(match[0], 10) : 0;
 }
 
+// ===== Body Scroll Lock Manager (Prevents Background Window Scrolling Behind Modals) =====
+function lockBodyScroll() {
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+}
+
+function unlockBodyScroll() {
+    const hasActiveModal = document.querySelector('.modal-overlay.active');
+    const lockModal = document.getElementById('doctorLockModal');
+    const isLockActive = lockModal && !lockModal.classList.contains('hidden');
+
+    if (!hasActiveModal && !isLockActive) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+    }
+}
+
 // ===== Layout Switching =====
 function setViewLayout(layout) {
     activeLayout = layout;
@@ -738,6 +755,7 @@ if (printBlankPadBtn) {
 // ===== New Patient Modal =====
 function openModal() {
     patientModal.classList.add('active');
+    lockBodyScroll();
     setTimeout(() => patientForm.name.focus(), 100);
 }
 
@@ -748,6 +766,7 @@ function openModalWithName(name) {
 
 function closeModal() {
     patientModal.classList.remove('active');
+    unlockBodyScroll();
 }
 
 newPatientBtn.addEventListener('click', openModal);
@@ -796,6 +815,7 @@ async function openEditModal(patientId) {
         document.getElementById('editPatientAddress').value = patient.address || '';
 
         editPatientModal.classList.add('active');
+        lockBodyScroll();
         setTimeout(() => document.getElementById('editPatientName').focus(), 100);
     } catch (err) {
         showToast(err.message, true);
@@ -804,6 +824,7 @@ async function openEditModal(patientId) {
 
 function closeEditModal() {
     if (editPatientModal) editPatientModal.classList.remove('active');
+    unlockBodyScroll();
 }
 
 if (editPatientBtn) {
@@ -961,10 +982,12 @@ function openAddRxModal() {
     }
 
     if (prescriptionModal) prescriptionModal.classList.add('active');
+    lockBodyScroll();
 }
 
 function closeAddRxModal() {
     if (prescriptionModal) prescriptionModal.classList.remove('active');
+    unlockBodyScroll();
 }
 
 if (prescriptionModal) {
@@ -1079,6 +1102,7 @@ function applyQuickPotency(potency) {
 function openMedicineCatalogModal() {
     const modal = document.getElementById('medicineCatalogModal');
     if (modal) modal.classList.add('active');
+    lockBodyScroll();
     renderMedicineCatalog(cachedMedicinesCatalog);
     const searchInput = document.getElementById('catalogSearchInput');
     if (searchInput) {
@@ -1090,6 +1114,7 @@ function openMedicineCatalogModal() {
 function closeMedicineCatalogModal() {
     const modal = document.getElementById('medicineCatalogModal');
     if (modal) modal.classList.remove('active');
+    unlockBodyScroll();
 }
 
 function renderMedicineCatalog(list) {
@@ -1152,6 +1177,7 @@ function filterMedicineCatalog() {
 function openAddMedicineModal() {
     const modal = document.getElementById('addMedicineModal');
     if (modal) modal.classList.add('active');
+    lockBodyScroll();
     const nameInput = document.getElementById('newMedName');
     if (nameInput) {
         nameInput.value = '';
@@ -1162,6 +1188,7 @@ function openAddMedicineModal() {
 function closeAddMedicineModal() {
     const modal = document.getElementById('addMedicineModal');
     if (modal) modal.classList.remove('active');
+    unlockBodyScroll();
 }
 
 async function handleSaveNewMedicine(event) {
@@ -1413,6 +1440,7 @@ const rememberDeviceCheck = document.getElementById('rememberDeviceCheck');
 function showLockScreen(errMsg = null) {
     if (doctorLockModal) {
         doctorLockModal.classList.remove('hidden');
+        lockBodyScroll();
         if (errMsg) {
             lockErrorMsg.textContent = errMsg;
             lockErrorMsg.style.display = 'flex';
@@ -1429,6 +1457,7 @@ function showLockScreen(errMsg = null) {
 function hideLockScreen() {
     if (doctorLockModal) {
         doctorLockModal.classList.add('hidden');
+        unlockBodyScroll();
         if (lockErrorMsg) lockErrorMsg.style.display = 'none';
         if (doctorPinInput) doctorPinInput.value = '';
     }
@@ -1499,6 +1528,7 @@ function updateAppointmentsBadgeAndStats() {
 function openAppointmentsModal() {
     const modal = document.getElementById('appointmentsManagerModal');
     if (modal) modal.classList.add('active');
+    lockBodyScroll();
     loadAppointments();
     const searchInput = document.getElementById('apptSearchInput');
     if (searchInput) {
@@ -1510,6 +1540,7 @@ function openAppointmentsModal() {
 function closeAppointmentsModal() {
     const modal = document.getElementById('appointmentsManagerModal');
     if (modal) modal.classList.remove('active');
+    unlockBodyScroll();
 }
 
 function setApptStatusFilter(status) {
@@ -1894,6 +1925,63 @@ async function initAuthAndApp() {
         loadAppointments();
         doSearch(true);
     }
+}
+
+// ── Backdrop Clicks & Escape Key to Close Modals Cleanly ──
+const apptsModal = document.getElementById('appointmentsManagerModal');
+if (apptsModal) {
+    apptsModal.addEventListener('click', e => {
+        if (e.target === apptsModal) closeAppointmentsModal();
+    });
+}
+const medCatModal = document.getElementById('medicineCatalogModal');
+if (medCatModal) {
+    medCatModal.addEventListener('click', e => {
+        if (e.target === medCatModal) closeMedicineCatalogModal();
+    });
+}
+const addMedModal = document.getElementById('addMedicineModal');
+if (addMedModal) {
+    addMedModal.addEventListener('click', e => {
+        if (e.target === addMedModal) closeAddMedicineModal();
+    });
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const addMed = document.getElementById('addMedicineModal');
+        if (addMed && addMed.classList.contains('active')) {
+            closeAddMedicineModal();
+            return;
+        }
+        const medCat = document.getElementById('medicineCatalogModal');
+        if (medCat && medCat.classList.contains('active')) {
+            closeMedicineCatalogModal();
+            return;
+        }
+        const appts = document.getElementById('appointmentsManagerModal');
+        if (appts && appts.classList.contains('active')) {
+            closeAppointmentsModal();
+            return;
+        }
+        if (prescriptionModal && prescriptionModal.classList.contains('active')) {
+            closeAddRxModal();
+            return;
+        }
+        if (editPatientModal && editPatientModal.classList.contains('active')) {
+            closeEditModal();
+            return;
+        }
+        if (patientModal && patientModal.classList.contains('active')) {
+            closeModal();
+            return;
+        }
+    }
+});
+
+// If lock screen is displayed on initial page load, freeze body scroll immediately
+if (doctorLockModal && !doctorLockModal.classList.contains('hidden')) {
+    lockBodyScroll();
 }
 
 // ===== Init on Page Load =====
