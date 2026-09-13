@@ -1979,6 +1979,50 @@ document.addEventListener('keydown', e => {
     }
 });
 
+// ===== Dark Mode Theme Manager =====
+function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    document.documentElement.classList.toggle('dark-mode', isDark);
+    try {
+        localStorage.setItem('clinic_admin_theme', isDark ? 'dark' : 'light');
+    } catch (_) {}
+    updateThemeToggleUI(isDark);
+    showToast(isDark ? '🌙 Dark Mode Enabled' : '☀️ Light Mode Enabled');
+}
+
+function updateThemeToggleUI(isDark) {
+    const btn = document.getElementById('darkModeToggleBtn');
+    if (!btn) return;
+    if (isDark) {
+        btn.innerHTML = '☀️ <span class="theme-toggle-text">Light Mode</span>';
+        btn.setAttribute('title', 'Switch to Light Mode');
+    } else {
+        btn.innerHTML = '🌙 <span class="theme-toggle-text">Dark Mode</span>';
+        btn.setAttribute('title', 'Switch to Dark Mode');
+    }
+}
+
+function initTheme() {
+    let isDark = false;
+    try {
+        const saved = localStorage.getItem('clinic_admin_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        isDark = saved === 'dark' || (!saved && prefersDark);
+    } catch (_) {}
+
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.documentElement.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('dark-mode');
+    }
+    updateThemeToggleUI(isDark);
+}
+
+// Initialize theme immediately
+initTheme();
+
 // If lock screen is displayed on initial page load, freeze body scroll immediately
 if (doctorLockModal && !doctorLockModal.classList.contains('hidden')) {
     lockBodyScroll();

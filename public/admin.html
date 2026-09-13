@@ -6,6 +6,17 @@
     <title>Bangali Homeopathic Clinic — Patient Records & OPD</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <script>
+        (function() {
+            try {
+                const saved = localStorage.getItem('clinic_admin_theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (_) {}
+        })();
+    </script>
 </head>
 <body class="dashboard-body">
 
@@ -21,6 +32,9 @@
             </div>
         </a>
         <div class="navbar-right">
+            <button type="button" id="darkModeToggleBtn" class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle Dark / Light Mode">
+                🌙 <span class="theme-toggle-text">Dark Mode</span>
+            </button>
             <button type="button" class="nav-meds-btn" onclick="openAppointmentsModal()" title="View and Manage Patient Appointments" style="background: #f0fdf4; border: 1.5px solid #86efac; color: #15803d; font-weight: 700;">
                 📅 Appointments (<span id="navAppointmentCount">0</span>)
             </button>

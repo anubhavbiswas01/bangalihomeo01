@@ -2448,7 +2448,7 @@ body.modal-open {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at top right, rgba(13, 110, 253, 0.15), rgba(15, 23, 42, 0.92)), #0b1329;
+    background: radial-gradient(circle at top right, rgba(15, 118, 110, 0.28), rgba(15, 23, 42, 0.96)), #071714;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     z-index: 99999;
@@ -2488,7 +2488,7 @@ body.modal-open {
 }
 
 .lock-header {
-    background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+    background: linear-gradient(135deg, #0f766e 0%, #15803d 100%);
     color: #ffffff;
     text-align: center;
     padding: 1.75rem 1.5rem 1.25rem;
@@ -2578,9 +2578,9 @@ body.modal-open {
 }
 
 .lock-input:focus {
-    border-color: #0d6efd;
+    border-color: #0f766e;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.18);
 }
 
 .lock-eye-btn {
@@ -2657,7 +2657,7 @@ body.modal-open {
 }
 
 .lock-remember-label input[type="checkbox"] {
-    accent-color: #0d6efd;
+    accent-color: #0f766e;
     width: 16px;
     height: 16px;
     cursor: pointer;
@@ -2665,7 +2665,7 @@ body.modal-open {
 
 .lock-submit-btn {
     width: 100%;
-    background: linear-gradient(135deg, #0d6efd 0%, #0077ff 100%);
+    background: linear-gradient(135deg, #0f766e 0%, #15803d 100%);
     color: #ffffff;
     border: none;
     padding: 0.85rem 1.25rem;
@@ -2673,7 +2673,7 @@ body.modal-open {
     font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -2682,8 +2682,8 @@ body.modal-open {
 }
 
 .lock-submit-btn:hover {
-    background: linear-gradient(135deg, #0b5ed7 0%, #0066dd 100%);
-    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+    background: linear-gradient(135deg, #115e59 0%, #166534 100%);
+    box-shadow: 0 6px 16px rgba(15, 118, 110, 0.45);
     transform: translateY(-1px);
 }
 
@@ -3714,6 +3714,580 @@ body.modal-open {
 .btn-convert-appt:hover {
     background: #047857;
     box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+}
+
+/* ============================================================
+   DARK MODE SYSTEM (ADMIN DASHBOARD)
+   Professional dark healthcare theme with high contrast & smooth transitions
+   ============================================================ */
+
+/* Theme Toggle Button in Navbar */
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #f1f5f9;
+    color: #1e293b;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.theme-toggle-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+
+/* ── Dark Mode Core Palette ── */
+html.dark-mode,
+body.dark-mode {
+    background: #090e17 !important;
+    color: #cbd5e1 !important;
+}
+
+/* Navbar */
+body.dark-mode .navbar-vibrant {
+    background: #0f172a !important;
+    border-bottom: 1px solid #1e293b !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.dark-mode .brand-title {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .brand-subtitle {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .theme-toggle-btn {
+    background: #1e293b !important;
+    color: #fef08a !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .theme-toggle-btn:hover {
+    background: #334155 !important;
+}
+
+body.dark-mode .phone-chip {
+    background: #064e3b !important;
+    color: #a7f3d0 !important;
+    border-color: #047857 !important;
+}
+
+body.dark-mode .status-pill {
+    background: #064e3b !important;
+    color: #a7f3d0 !important;
+    border: 1px solid #059669 !important;
+}
+
+body.dark-mode .nav-meds-btn {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .lock-nav-btn {
+    background: #1e293b !important;
+    color: #fca5a5 !important;
+    border-color: #991b1b !important;
+}
+
+body.dark-mode .lock-nav-btn:hover {
+    background: #991b1b !important;
+    color: #ffffff !important;
+}
+
+/* Hero Welcome Banner */
+body.dark-mode .hero-welcome {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    border-left: 5px solid #0f766e !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .hero-welcome h2 {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .hero-desc {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .date-badge {
+    background: #064e3b !important;
+    color: #a7f3d0 !important;
+    border-color: #047857 !important;
+}
+
+/* Stat Cards */
+body.dark-mode .stat-card {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .stat-number {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .stat-label {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .stat-blue {
+    background: linear-gradient(135deg, #0f172a 60%, #042f2e 100%) !important;
+    border-left: 5px solid #0f766e !important;
+}
+body.dark-mode .stat-blue .stat-icon { background: #042f2e !important; color: #2dd4bf !important; }
+
+body.dark-mode .stat-green {
+    background: linear-gradient(135deg, #0f172a 60%, #052e16 100%) !important;
+    border-left: 5px solid #15803d !important;
+}
+body.dark-mode .stat-green .stat-icon { background: #052e16 !important; color: #4ade80 !important; }
+
+body.dark-mode .stat-amber {
+    background: linear-gradient(135deg, #0f172a 60%, #451a03 100%) !important;
+    border-left: 5px solid #d97706 !important;
+}
+body.dark-mode .stat-amber .stat-icon { background: #451a03 !important; color: #fbbf24 !important; }
+
+body.dark-mode .stat-purple {
+    background: linear-gradient(135deg, #0f172a 60%, #134e4a 100%) !important;
+    border-left: 5px solid #0d9488 !important;
+}
+body.dark-mode .stat-purple .stat-icon { background: #134e4a !important; color: #5eead4 !important; }
+
+/* Search & Filter Card */
+body.dark-mode .search-card {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    border-top: 4px solid #0f766e !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .card-heading {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .card-subheading {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .card-badge-icon {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+}
+
+body.dark-mode .search-input-box input {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .search-input-box input:focus {
+    background: #0f172a !important;
+    border-color: #0f766e !important;
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.25) !important;
+}
+
+body.dark-mode .search-glass-icon {
+    color: #2dd4bf !important;
+}
+
+body.dark-mode .clear-search-btn {
+    color: #64748b !important;
+}
+
+body.dark-mode .clear-search-btn:hover {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .multi-filter-toggle {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .multi-filter-toggle:hover {
+    background: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .multi-filter-toggle.active {
+    background: #0f766e !important;
+    color: #ffffff !important;
+    border-color: #0f766e !important;
+}
+
+body.dark-mode .multi-filter-row {
+    background: #131f33 !important;
+    border-color: #1e293b !important;
+}
+
+body.dark-mode .filter-group label {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .filter-group input,
+body.dark-mode .filter-group select {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .filter-tab-btn {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .filter-tab-btn:hover {
+    background: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .filter-tab-btn.active-tab {
+    background: linear-gradient(135deg, #0f766e, #15803d) !important;
+    color: #ffffff !important;
+    border-color: #0f766e !important;
+}
+
+/* Patient Table View */
+body.dark-mode .table-container,
+body.dark-mode .patients-table-card {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .patients-table th {
+    background: #1e293b !important;
+    color: #94a3b8 !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+body.dark-mode .patients-table th.sort-asc,
+body.dark-mode .patients-table th.sort-desc {
+    background: #1e3a5f !important;
+    color: #60a5fa !important;
+    border-bottom-color: #3b82f6 !important;
+}
+
+body.dark-mode .patients-table td {
+    border-bottom: 1px solid #1e293b !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .patient-table-row:hover {
+    background: #172554 !important;
+}
+
+body.dark-mode .patient-table-row.row-selected {
+    background: rgba(15, 118, 110, 0.35) !important;
+}
+
+body.dark-mode .pt-name-text {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .pt-meta-text {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .pt-village-cell {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .pt-id-badge {
+    background: #1e3a8a !important;
+    color: #bfdbfe !important;
+    border-color: #2563eb !important;
+}
+
+body.dark-mode .pt-visit-badge {
+    background: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .pt-phone-link {
+    color: #38bdf8 !important;
+}
+
+/* Patient Card Grid View */
+body.dark-mode .patient-card-vibrant {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+    border-left: 5px solid #0f766e !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .patient-card-vibrant:hover {
+    border-color: #334155 !important;
+    border-left-color: #15803d !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    transform: translateY(-3px);
+}
+
+body.dark-mode .patient-name {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .card-detail-item {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .card-detail-item strong {
+    color: #cbd5e1 !important;
+}
+
+/* Patient Profile Detail Card (Right Side) */
+body.dark-mode .patient-detail-card {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    border-top: 5px solid #0f766e !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .detail-header-vibrant {
+    border-bottom: 2px solid #1e293b !important;
+}
+
+body.dark-mode .detail-name {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .detail-id-pill {
+    background: #1e3a8a !important;
+    color: #bfdbfe !important;
+    border-color: #2563eb !important;
+}
+
+body.dark-mode .info-chip {
+    background: #131f33 !important;
+    border-color: #1e293b !important;
+}
+
+body.dark-mode .chip-label {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .chip-val {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .section-title-bar {
+    border-bottom: 2px solid #1e293b !important;
+}
+
+body.dark-mode .title-text {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .rx-history-card {
+    background: #131f33 !important;
+    border: 1.5px solid #1e293b !important;
+    border-left: 4px solid #0f766e !important;
+}
+
+body.dark-mode .rx-history-card:hover {
+    background: #172554 !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .rx-diag {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .empty-state {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+}
+
+body.dark-mode .empty-title {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .empty-desc {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .empty-icon-circle {
+    background: #1e293b !important;
+}
+
+/* Modals in Dark Mode */
+body.dark-mode .modal,
+body.dark-mode .modal-content,
+body.dark-mode .modal-vibrant {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    color: #cbd5e1 !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+}
+
+body.dark-mode .modal-body,
+body.dark-mode .modal-body-vibrant {
+    background: #0f172a !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .modal-footer,
+body.dark-mode .modal-footer-vibrant {
+    background: #090e17 !important;
+    border-top: 1px solid #1e293b !important;
+}
+
+body.dark-mode .modal input,
+body.dark-mode .modal select,
+body.dark-mode .modal textarea,
+body.dark-mode .modal-body-vibrant input,
+body.dark-mode .modal-body-vibrant select,
+body.dark-mode .modal-body-vibrant textarea {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1.5px solid #334155 !important;
+}
+
+body.dark-mode .modal input:focus,
+body.dark-mode .modal select:focus,
+body.dark-mode .modal textarea:focus,
+body.dark-mode .modal-body-vibrant input:focus,
+body.dark-mode .modal-body-vibrant select:focus,
+body.dark-mode .modal-body-vibrant textarea:focus {
+    border-color: #0f766e !important;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.25) !important;
+    background: #0f172a !important;
+}
+
+body.dark-mode .rx-summary-banner {
+    background: #131f33 !important;
+    border-color: #1e293b !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .rx-summary-banner strong {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .med-input {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .med-input:focus {
+    background: #0f172a !important;
+    border-color: #0f766e !important;
+}
+
+body.dark-mode .med-row-del-btn {
+    background: #2a1515 !important;
+    color: #fca5a5 !important;
+    border-color: #7f1d1d !important;
+}
+
+body.dark-mode .med-row-del-btn:hover {
+    background: #7f1d1d !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-outline {
+    background: transparent !important;
+    color: #cbd5e1 !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .btn-outline:hover {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    border-color: #64748b !important;
+}
+
+/* Master Medicine Catalog Modal in Dark Mode */
+body.dark-mode .med-catalog-container {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+}
+
+body.dark-mode .med-catalog-table th {
+    background: #1e293b !important;
+    color: #94a3b8 !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+body.dark-mode .med-catalog-table td {
+    color: #cbd5e1 !important;
+    border-bottom: 1px solid #1e293b !important;
+}
+
+body.dark-mode .med-catalog-table td strong {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .med-potency-badge {
+    background: #1e293b !important;
+    color: #5eead4 !important;
+    border-color: #115e59 !important;
+}
+
+body.dark-mode .btn-del-catalog-med {
+    background: #2a1515 !important;
+    color: #fca5a5 !important;
+    border-color: #7f1d1d !important;
+}
+
+body.dark-mode .btn-del-catalog-med:hover {
+    background: #7f1d1d !important;
+    color: #ffffff !important;
+}
+
+/* Lock Screen in Dark Mode */
+body.dark-mode .lock-card {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+}
+
+body.dark-mode .lock-input {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .keypad-btn {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .keypad-btn:hover {
+    background: #334155 !important;
+}
+
+body.dark-mode .keypad-btn:active {
+    background: #475569 !important;
+}
+
+body.dark-mode .keypad-btn.keypad-fn {
+    background: #131f33 !important;
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .lock-remember-label {
+    color: #94a3b8 !important;
 }
 
 
