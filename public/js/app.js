@@ -632,9 +632,14 @@ async function loadPatient(patientId) {
                             ${rx.next_visit_date ? `<span class="rx-next-pill">⏭️ Next Visit: ${formatVisitDate(rx.next_visit_date)}</span>` : ''}
                             ${rx.previous_visit_date ? `<span class="rx-prev-pill">⏮️ Last Visit: ${formatVisitDate(rx.previous_visit_date)}</span>` : ''}
                         </div>
-                        <button class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); openRxPrintSlip('${rx.rx_id}')">
-                            🖨️ Print Slip
-                        </button>
+                        <div class="rx-card-actions" style="display: flex; gap: 0.4rem; align-items: center;">
+                            <button class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); openRxPrintSlip('${rx.rx_id}')" title="Print this OPD Prescription Slip">
+                                🖨️ Print Slip
+                            </button>
+                            <button class="btn btn-tbl-delete btn-sm" onclick="event.stopPropagation(); handleDeletePrescription('${rx.rx_id}')" title="Delete this prescription">
+                                🗑️ Delete
+                            </button>
+                        </div>
                     </div>
 
                     ${(rx.complaints || rx.diagnosis || rx.tests) ? `
@@ -741,6 +746,52 @@ function openRxPrintSlip(rxId) {
         }));
     }
     window.open(`/print.html?rx=${encodeURIComponent(rxId)}&token=${encodeURIComponent(token)}`, '_blank');
+}
+
+// ===== Delete Prescription Handler =====
+async function handleDeletePrescription(rxId) {
+    if (!rxId) return;
+    const confirmed = window.confirm(`Are you sure you want to permanently delete prescription ${rxId}?\nThis action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+        await api(`/api/prescriptions/${encodeURIComponent(rxId)}`, {
+            method: 'DELETE'
+        });
+        showToast(`🗑️ Prescription ${rxId} deleted.`);
+
+        if (currentPatient) {
+            // Remove from patient prescriptions
+            if (Array.isArray(currentPatient.prescriptions)) {
+                currentPatient.prescriptions = currentPatient.prescriptions.filter(
+                    r => r.rx_id !== rxId && String(r.id) !== String(rxId)
+                );
+            }
+
+            // Recalculate last_visit_date and next_visit_date
+            if (currentPatient.prescriptions && currentPatient.prescriptions.length > 0) {
+                currentPatient.last_visit_date = currentPatient.prescriptions[0].created_at;
+                currentPatient.next_visit_date = currentPatient.prescriptions[0].next_visit_date || null;
+            } else {
+                currentPatient.last_visit_date = currentPatient.created_at;
+                currentPatient.next_visit_date = null;
+            }
+
+            // Sync with loadedPatients cache
+            const idx = loadedPatients.findIndex(p => p.patient_id === currentPatient.patient_id || String(p.id) === String(currentPatient.id));
+            if (idx !== -1) {
+                loadedPatients[idx].last_visit_date = currentPatient.last_visit_date;
+                loadedPatients[idx].next_visit_date = currentPatient.next_visit_date;
+                try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (_) {}
+                applySortingAndRender();
+            }
+
+            // Re-render patient details immediately
+            loadPatient(currentPatient.patient_id);
+        }
+    } catch (err) {
+        showToast(err.message, true);
+    }
 }
 
 // ===== Action Buttons =====

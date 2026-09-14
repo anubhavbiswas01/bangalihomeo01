@@ -3196,6 +3196,27 @@ body.modal-open {
     color: #0f172a;
 }
 
+.btn-tbl-delete {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    padding: 0.32rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-tbl-delete:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
 /* ─── Prescription Modal & Medicine Prescribing ─── */
 .modal-prescription {
     max-width: 780px;
@@ -4308,6 +4329,17 @@ body.dark-mode .btn-tbl-edit {
 body.dark-mode .btn-tbl-edit:hover {
     background: #334155 !important;
     color: #ffffff !important;
+}
+
+body.dark-mode .btn-tbl-delete {
+    background: #2a1515 !important;
+    color: #fca5a5 !important;
+    border: 1px solid #7f1d1d !important;
+}
+body.dark-mode .btn-tbl-delete:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
 }
 
 

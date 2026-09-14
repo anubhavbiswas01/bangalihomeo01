@@ -398,6 +398,54 @@ async function getPrescriptionById(rxId) {
     return rx;
 }
 
+async function deletePrescription(rxId) {
+    const db = await connect();
+    const strId = String(rxId);
+    const numId = Number(rxId);
+
+    const filter = {
+        $or: [
+            { rx_id: strId },
+            ...(isNaN(numId) ? [] : [{ id: numId }])
+        ]
+    };
+
+    const rx = await db.collection('prescriptions').findOne(filter);
+    if (!rx) return false;
+
+    await db.collection('prescriptions').deleteOne(filter);
+
+    // Re-evaluate patient's last_visit_date and next_visit_date
+    const patientCode = rx.patient_id;
+    const remainingRx = await db.collection('prescriptions')
+        .find({ patient_id: patientCode })
+        .sort({ created_at: -1 })
+        .limit(1)
+        .toArray();
+
+    const ptUpdate = {};
+    if (remainingRx.length > 0) {
+        ptUpdate.last_visit_date = remainingRx[0].created_at;
+        ptUpdate.next_visit_date = remainingRx[0].next_visit_date || null;
+    } else {
+        // Fall back to patient created_at
+        const pt = await db.collection('patients').findOne({
+            $or: [{ patient_id: patientCode }, { id: Number(patientCode) }]
+        });
+        if (pt) {
+            ptUpdate.last_visit_date = pt.created_at;
+            ptUpdate.next_visit_date = null;
+        }
+    }
+
+    await db.collection('patients').updateOne(
+        { $or: [{ patient_id: patientCode }, { id: Number(patientCode) }] },
+        { $set: ptUpdate }
+    );
+
+    return true;
+}
+
 // ── Stats (Aggregated in <5ms) ──
 async function getStats() {
     const db = await connect();
@@ -767,6 +815,7 @@ module.exports = {
     deletePatient,
     createPrescription,
     getPrescriptionById,
+    deletePrescription,
     getStats,
     getAllMedicines,
     addMedicine,

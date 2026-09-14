@@ -238,4 +238,42 @@ router.get('/:rxId', async (req, res) => {
     }
 });
 
+// ── DELETE /api/prescriptions/:rxId — Delete prescription ──
+router.delete('/:rxId', async (req, res) => {
+    try {
+        const { rxId } = req.params;
+        if (useMongo()) {
+            const success = await mongo.deletePrescription(rxId);
+            if (!success) {
+                return res.status(404).json({ error: 'Prescription not found.' });
+            }
+            return res.json({ success: true, message: 'Prescription deleted successfully.' });
+        }
+
+        const rx = await db.get('SELECT id, patient_id FROM prescriptions WHERE rx_id = ? OR id = ?', [rxId, rxId]);
+        if (!rx) {
+            return res.status(404).json({ error: 'Prescription not found.' });
+        }
+
+        await db.run('DELETE FROM prescription_medicines WHERE prescription_id = ?', [rx.id]);
+        await db.run('DELETE FROM prescriptions WHERE id = ?', [rx.id]);
+
+        // Recalculate patient's last visit & next visit
+        const lastRx = await db.get('SELECT created_at, next_visit_date FROM prescriptions WHERE patient_id = ? ORDER BY id DESC LIMIT 1', [rx.patient_id]);
+        if (lastRx) {
+            await db.run('UPDATE patients SET last_visit_date = ?, next_visit_date = ? WHERE id = ?', [lastRx.created_at, lastRx.next_visit_date, rx.patient_id]);
+        } else {
+            const pt = await db.get('SELECT created_at FROM patients WHERE id = ?', [rx.patient_id]);
+            if (pt) {
+                await db.run('UPDATE patients SET last_visit_date = ?, next_visit_date = NULL WHERE id = ?', [pt.created_at, rx.patient_id]);
+            }
+        }
+
+        res.json({ success: true, message: 'Prescription deleted successfully.' });
+    } catch (err) {
+        console.error('Error deleting prescription:', err);
+        res.status(500).json({ error: 'Failed to delete prescription: ' + err.message });
+    }
+});
+
 module.exports = router;
