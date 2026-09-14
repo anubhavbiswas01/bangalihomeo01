@@ -1192,6 +1192,18 @@ body.modal-open {
     color: #5eead4;
 }
 
+.footer-dev-credit .dev-phone {
+    color: #5eead4;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.footer-dev-credit .dev-phone:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
 .footer-dev-credit .dev-linkedin {
     color: #5eead4;
     font-weight: 600;
@@ -1653,6 +1665,14 @@ body.dark-mode .footer-dev-credit .dev-name {
 
 body.dark-mode .footer-dev-credit .dev-name:hover {
     color: #2dd4bf;
+}
+
+body.dark-mode .footer-dev-credit .dev-phone {
+    color: #2dd4bf;
+}
+
+body.dark-mode .footer-dev-credit .dev-phone:hover {
+    color: #5eead4;
 }
 
 body.dark-mode .footer-dev-credit .dev-linkedin {
