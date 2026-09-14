@@ -147,6 +147,35 @@ body {
     box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35);
 }
 
+.nav-end-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.patient-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.patient-theme-toggle:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+
 .mobile-toggle-btn {
     display: none;
     background: none;
@@ -1038,6 +1067,479 @@ body.modal-open {
     opacity: 1;
     color: #ffffff;
     text-decoration: underline;
+}
+
+/* ============================================================
+   DARK MODE THEME FOR PUBLIC PATIENT PORTAL
+   ============================================================ */
+
+html.dark-mode,
+body.dark-mode,
+:root.dark-mode {
+    --primary: #2dd4bf;        /* Bright teal for dark backgrounds */
+    --primary-dark: #14b8a6;
+    --primary-light: #132724;
+    --accent: #4ade80;         /* Bright mint green */
+    --accent-light: #064e3b;
+    --text-main: #f8fafc;       /* Slate 50 */
+    --text-muted: #94a3b8;      /* Slate 400 */
+    --bg-main: #090e17;        /* Ultra-dark slate/navy background */
+    --card-bg: #0f172a;        /* Deep slate 900 card surface */
+    --border: #1e293b;         /* Subtle slate border */
+    --border-focus: #2dd4bf;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode {
+    background-color: #090e17;
+    color: #f8fafc;
+}
+
+/* ── Navigation in Dark Mode ── */
+body.dark-mode .patient-nav {
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .brand-text h1 {
+    color: #f8fafc;
+}
+
+body.dark-mode .brand-text span {
+    color: #2dd4bf;
+}
+
+body.dark-mode .brand-logo-img {
+    border-color: #2dd4bf;
+    background: #0f172a;
+}
+
+body.dark-mode .nav-links a {
+    color: #cbd5e1;
+}
+
+body.dark-mode .nav-links a:hover {
+    color: #2dd4bf;
+}
+
+body.dark-mode .nav-cta-btn {
+    background: linear-gradient(135deg, #0d9488, #16a34a);
+    color: #ffffff !important;
+}
+
+body.dark-mode .patient-theme-toggle {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+body.dark-mode .patient-theme-toggle:hover {
+    background: #334155;
+    border-color: #475569;
+}
+
+body.dark-mode .mobile-toggle-btn {
+    color: #2dd4bf;
+}
+
+body.dark-mode .nav-links.mobile-open {
+    background: #0f172a;
+    border-bottom-color: #1e293b;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Hero Section in Dark Mode ── */
+body.dark-mode .hero-section {
+    background: linear-gradient(180deg, #061019 0%, #090e17 100%);
+    border-bottom-color: #1e293b;
+}
+
+body.dark-mode .hero-tag {
+    background: #064e3b;
+    color: #6ee7b7;
+    border: 1px solid #047857;
+}
+
+body.dark-mode .hero-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .hero-title span {
+    color: #2dd4bf;
+}
+
+body.dark-mode .hero-subtitle {
+    color: #94a3b8;
+}
+
+body.dark-mode .btn-primary-hero {
+    background: linear-gradient(135deg, #0d9488, #16a34a);
+}
+
+body.dark-mode .btn-secondary-hero {
+    background: #1e293b;
+    color: #2dd4bf;
+    border-color: #334155;
+}
+
+body.dark-mode .btn-secondary-hero:hover {
+    background: #273549;
+    border-color: #2dd4bf;
+}
+
+body.dark-mode .hero-highlights {
+    border-top-color: #1e293b;
+}
+
+body.dark-mode .hero-stat h4 {
+    color: #2dd4bf;
+}
+
+body.dark-mode .hero-stat p {
+    color: #94a3b8;
+}
+
+body.dark-mode .hero-doc-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .hero-doc-img-wrap {
+    border-color: #134e4a;
+    background: #090e17;
+}
+
+body.dark-mode .hero-doc-card h3 {
+    color: #f8fafc;
+}
+
+body.dark-mode .hero-doc-qual {
+    color: #2dd4bf;
+}
+
+body.dark-mode .hero-doc-reg {
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+
+/* ── Section Dividers & Headers in Dark Mode ── */
+body.dark-mode .section-bg-white {
+    background: #0c121d !important;
+}
+
+body.dark-mode .section-tag {
+    color: #2dd4bf;
+}
+
+body.dark-mode .section-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .section-subtitle {
+    color: #94a3b8;
+}
+
+/* ── Doctor Profile in Dark Mode ── */
+body.dark-mode .doctor-profile-grid {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .doctor-photo-frame {
+    border-color: #1e293b;
+}
+
+body.dark-mode .doctor-bio-content h3 {
+    color: #f8fafc;
+}
+
+body.dark-mode .doctor-bio-content .degrees {
+    color: #2dd4bf;
+}
+
+body.dark-mode .doctor-bio-content .reg-badge {
+    background: #064e3b;
+    color: #6ee7b7;
+    border-color: #047857;
+}
+
+body.dark-mode .doctor-bio-text {
+    color: #cbd5e1;
+}
+
+body.dark-mode .pillar-item h5 {
+    color: #f8fafc;
+}
+
+body.dark-mode .pillar-item p {
+    color: #94a3b8;
+}
+
+body.dark-mode .pillar-icon {
+    background: #132724;
+    color: #2dd4bf;
+}
+
+/* ── Clinic Timings in Dark Mode ── */
+body.dark-mode .timing-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .timing-card:hover {
+    border-color: #2dd4bf;
+    transform: translateY(-3px);
+}
+
+body.dark-mode .timing-morning .timing-icon {
+    background: #3b2203;
+    color: #fbbf24;
+}
+
+body.dark-mode .timing-evening .timing-icon {
+    background: #1e1e4a;
+    color: #a5b4fc;
+}
+
+body.dark-mode .timing-card h4 {
+    color: #f8fafc;
+}
+
+body.dark-mode .timing-hours {
+    color: #2dd4bf;
+}
+
+body.dark-mode .timing-days {
+    color: #94a3b8;
+}
+
+/* ── Appointment Booking Card in Dark Mode ── */
+body.dark-mode .booking-wrap {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .booking-header {
+    background: linear-gradient(135deg, #0d5f57, #115e59);
+}
+
+body.dark-mode .booking-header h3 {
+    color: #ffffff;
+}
+
+body.dark-mode .booking-header p {
+    color: #99f6e4;
+}
+
+body.dark-mode .booking-form {
+    background: #0f172a;
+}
+
+body.dark-mode .patient-type-tabs {
+    background: #090e17;
+    border-color: #1e293b;
+}
+
+body.dark-mode .type-tab-btn {
+    color: #94a3b8;
+}
+
+body.dark-mode .type-tab-btn:hover {
+    color: #2dd4bf;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .type-tab-btn.active {
+    background: #1e293b;
+    color: #2dd4bf;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .form-group-patient label {
+    color: #e2e8f0;
+}
+
+body.dark-mode .form-input-patient,
+body.dark-mode .form-select-patient,
+body.dark-mode .form-textarea-patient {
+    background: #090e17;
+    border: 1.5px solid #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .form-input-patient:focus,
+body.dark-mode .form-select-patient:focus,
+body.dark-mode .form-textarea-patient:focus {
+    background: #0d1527;
+    border-color: #2dd4bf;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15);
+}
+
+body.dark-mode .form-input-patient.has-error,
+body.dark-mode .form-select-patient.has-error,
+body.dark-mode .form-textarea-patient.has-error {
+    border-color: #ef4444;
+    background: #1f1115;
+}
+
+body.dark-mode .form-select-patient option {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+body.dark-mode .timing-notice-box {
+    background: #072620;
+    border-color: #0f766e;
+}
+
+body.dark-mode .timing-notice-text {
+    color: #a7f3d0;
+}
+
+body.dark-mode .timing-notice-text strong {
+    color: #ffffff;
+}
+
+body.dark-mode .btn-submit-booking {
+    background: linear-gradient(135deg, #0d9488, #16a34a);
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+}
+
+body.dark-mode .btn-submit-booking:hover:not(:disabled) {
+    box-shadow: 0 8px 22px rgba(13, 148, 136, 0.45);
+}
+
+/* ── Contact Section in Dark Mode ── */
+body.dark-mode .contact-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .contact-card h4 {
+    color: #f8fafc;
+}
+
+body.dark-mode .contact-icon {
+    background: #132724;
+    color: #2dd4bf;
+}
+
+body.dark-mode .contact-text h5 {
+    color: #f8fafc;
+}
+
+body.dark-mode .contact-text p {
+    color: #94a3b8;
+}
+
+body.dark-mode .contact-phone-link {
+    color: #2dd4bf;
+}
+
+/* ── Footer in Dark Mode ── */
+body.dark-mode .patient-footer {
+    background: #050b11;
+    color: #94a3b8;
+    border-top: 1px solid #1e293b;
+}
+
+body.dark-mode .footer-grid {
+    border-bottom-color: #1e293b;
+}
+
+body.dark-mode .footer-brand p {
+    color: #2dd4bf;
+}
+
+body.dark-mode .footer-bottom {
+    color: #64748b;
+}
+
+body.dark-mode .doctor-portal-link {
+    color: #2dd4bf;
+}
+
+/* ── Appointment Confirmation Modal in Dark Mode ── */
+body.dark-mode .confirm-card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-mode .confirm-badge-icon {
+    background: #064e3b;
+    color: #6ee7b7;
+    border-color: #047857;
+}
+
+body.dark-mode .confirm-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .confirm-subtitle {
+    color: #94a3b8;
+}
+
+body.dark-mode .ref-box-highlight {
+    background: #064e3b;
+    border-color: #10b981;
+}
+
+body.dark-mode .ref-box-label {
+    color: #a7f3d0;
+}
+
+body.dark-mode .ref-box-number {
+    color: #f8fafc;
+}
+
+body.dark-mode .confirm-details-list {
+    background: #090e17;
+    border: 1px solid #1e293b;
+}
+
+body.dark-mode .confirm-details-row {
+    border-bottom-color: #1e293b;
+}
+
+body.dark-mode .confirm-details-row span:first-child {
+    color: #94a3b8;
+}
+
+body.dark-mode .confirm-details-row span:last-child {
+    color: #f8fafc;
+}
+
+body.dark-mode .confirm-note {
+    color: #64748b;
+}
+
+body.dark-mode .btn-print-confirm {
+    background: #0d9488;
+}
+
+body.dark-mode .btn-print-confirm:hover {
+    background: #0f766e;
+}
+
+body.dark-mode .btn-close-confirm {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+body.dark-mode .btn-close-confirm:hover {
+    background: #334155;
+    color: #f8fafc;
 }
 
 /* ── Print Styles for Appointment Confirmation (STRICT 1-PAGE) ── */

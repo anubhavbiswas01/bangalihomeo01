@@ -6,6 +6,17 @@
     <title>New Prescription — Bangali Homeopathic Clinic</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <script>
+        (function() {
+            try {
+                const saved = localStorage.getItem('clinic_theme') || localStorage.getItem('clinic_admin_theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (_) {}
+        })();
+    </script>
 </head>
 <body>
 

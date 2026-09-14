@@ -2126,6 +2126,7 @@ function toggleDarkMode() {
     const isDark = document.body.classList.toggle('dark-mode');
     document.documentElement.classList.toggle('dark-mode', isDark);
     try {
+        localStorage.setItem('clinic_theme', isDark ? 'dark' : 'light');
         localStorage.setItem('clinic_admin_theme', isDark ? 'dark' : 'light');
     } catch (_) {}
     updateThemeToggleUI(isDark);
@@ -2147,7 +2148,7 @@ function updateThemeToggleUI(isDark) {
 function initTheme() {
     let isDark = false;
     try {
-        const saved = localStorage.getItem('clinic_admin_theme');
+        const saved = localStorage.getItem('clinic_theme') || localStorage.getItem('clinic_admin_theme');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         isDark = saved === 'dark' || (!saved && prefersDark);
     } catch (_) {}

@@ -7,6 +7,17 @@
     <meta name="description" content="Bangali Homeopathic Clinic. Consultation with Dr. Sapan Bakshi, BHMS (WBUHS) Kolkata, Reg. No. 30444. Gentle, personalized homeopathic care in Madhubani, Bihar.">
     <link rel="stylesheet" href="/css/patient.css">
     <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <script>
+        (function() {
+            try {
+                const saved = localStorage.getItem('clinic_theme') || localStorage.getItem('clinic_admin_theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (_) {}
+        })();
+    </script>
 </head>
 <body>
 
@@ -30,9 +41,14 @@
                 <li><a href="#contact">Contact</a></li>
             </ul>
 
-            <button type="button" class="mobile-toggle-btn" id="mobileNavToggle" aria-label="Toggle Menu">
-                ☰
-            </button>
+            <div class="nav-end-actions">
+                <button type="button" id="publicThemeToggleBtn" class="patient-theme-toggle" onclick="togglePublicTheme()" title="Toggle Dark / Light Mode" aria-label="Toggle Dark / Light Mode">
+                    🌙 <span class="theme-label">Dark</span>
+                </button>
+                <button type="button" class="mobile-toggle-btn" id="mobileNavToggle" aria-label="Toggle Menu">
+                    ☰
+                </button>
+            </div>
         </div>
     </header>
 

@@ -7,7 +7,52 @@ document.addEventListener('DOMContentLoaded', () => {
     initDatePicker();
     initMobileNav();
     initBookingForm();
+    initPublicTheme();
 });
+
+// ── 0. Theme Manager (Dark / Light Mode) ──
+function togglePublicTheme() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    document.documentElement.classList.toggle('dark-mode', isDark);
+    try {
+        localStorage.setItem('clinic_theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('clinic_admin_theme', isDark ? 'dark' : 'light');
+    } catch (_) {}
+    updatePublicThemeToggleUI(isDark);
+}
+
+function updatePublicThemeToggleUI(isDark) {
+    const btn = document.getElementById('publicThemeToggleBtn');
+    if (!btn) return;
+    if (isDark) {
+        btn.innerHTML = '☀️ <span class="theme-label">Light</span>';
+        btn.setAttribute('title', 'Switch to Light Mode');
+    } else {
+        btn.innerHTML = '🌙 <span class="theme-label">Dark</span>';
+        btn.setAttribute('title', 'Switch to Dark Mode');
+    }
+}
+
+function initPublicTheme() {
+    let isDark = false;
+    try {
+        const saved = localStorage.getItem('clinic_theme') || localStorage.getItem('clinic_admin_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        isDark = saved === 'dark' || (!saved && prefersDark);
+    } catch (_) {}
+
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.documentElement.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('dark-mode');
+    }
+    updatePublicThemeToggleUI(isDark);
+}
+
+// Immediately initialize theme state on load
+initPublicTheme();
 
 // ── 1. Restrict Preferred Date to Today & Future ──
 function initDatePicker() {
