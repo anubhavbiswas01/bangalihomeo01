@@ -629,6 +629,7 @@ async function loadPatient(patientId) {
                         <div class="rx-id-group">
                             <span class="rx-code-pill">${rx.rx_id}</span>
                             <span class="rx-date-pill">📅 Visit: ${formatVisitDate(rx.created_at)}</span>
+                            ${rx.next_visit_date ? `<span class="rx-next-pill">⏭️ Next Visit: ${formatVisitDate(rx.next_visit_date)}</span>` : ''}
                             ${rx.previous_visit_date ? `<span class="rx-prev-pill">⏮️ Last Visit: ${formatVisitDate(rx.previous_visit_date)}</span>` : ''}
                         </div>
                         <button class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); openRxPrintSlip('${rx.rx_id}')">
@@ -971,10 +972,13 @@ function openAddRxModal() {
     const diagEl = document.getElementById('rxDiagnosis');
     const testsEl = document.getElementById('rxTests');
     const notesEl = document.getElementById('rxNotes');
+    const nextVisitEl = document.getElementById('rxNextVisitDate');
     if (compEl) compEl.value = '';
     if (diagEl) diagEl.value = '';
     if (testsEl) testsEl.value = '';
     if (notesEl) notesEl.value = '';
+    if (nextVisitEl) nextVisitEl.value = '';
+    updateNextVisitDisplay();
 
     // Clear and add 2 initial medicine rows
     const medContainer = document.getElementById('medicinesListContainer');
@@ -1292,6 +1296,65 @@ function appendRxTest(testName) {
     el.focus();
 }
 
+function setNextVisitDays(days) {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    const input = document.getElementById('rxNextVisitDate');
+    if (input) {
+        input.value = dateStr;
+        updateNextVisitDisplay();
+    }
+}
+
+function clearNextVisit() {
+    const input = document.getElementById('rxNextVisitDate');
+    if (input) {
+        input.value = '';
+        updateNextVisitDisplay();
+    }
+}
+
+function updateNextVisitDisplay() {
+    const input = document.getElementById('rxNextVisitDate');
+    const display = document.getElementById('rxNextVisitCalculated');
+    if (!input || !display) return;
+    if (!input.value) {
+        display.textContent = '';
+        return;
+    }
+    const parts = input.value.split('-');
+    if (parts.length < 3) {
+        display.textContent = '';
+        return;
+    }
+    const [y, m, d] = parts.map(Number);
+    const targetDate = new Date(y, m - 1, d);
+    if (isNaN(targetDate.getTime())) {
+        display.textContent = '';
+        return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    let relStr = '';
+    if (diffDays === 7) relStr = 'in 1 week';
+    else if (diffDays === 14 || diffDays === 15) relStr = 'in 15 days';
+    else if (diffDays >= 28 && diffDays <= 31) relStr = 'in 1 month';
+    else if (diffDays >= 58 && diffDays <= 62) relStr = 'in 2 months';
+    else if (diffDays > 0) relStr = `in ${diffDays} days`;
+    else if (diffDays === 0) relStr = 'Today';
+    else relStr = `${Math.abs(diffDays)} days ago`;
+
+    const formatted = targetDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    display.textContent = `✓ ${formatted} (${relStr})`;
+}
+
 async function savePrescriptionData() {
     const patientId = document.getElementById('rxPatientId')?.value || currentPatient?.patient_id;
     if (!patientId) throw new Error('No patient selected.');
@@ -1299,6 +1362,7 @@ async function savePrescriptionData() {
     const complaints = document.getElementById('rxComplaints')?.value.trim() || '';
     const diagnosis = document.getElementById('rxDiagnosis')?.value.trim() || '';
     const tests = document.getElementById('rxTests')?.value.trim() || '';
+    const nextVisitDate = document.getElementById('rxNextVisitDate')?.value.trim() || null;
     const notes = document.getElementById('rxNotes')?.value.trim() || '';
     const previousVisitDate = document.getElementById('rxPreviousVisitDate')?.value || null;
 
@@ -1327,6 +1391,7 @@ async function savePrescriptionData() {
         complaints,
         diagnosis,
         tests,
+        next_visit_date: nextVisitDate,
         notes,
         medicines,
         previous_visit_date: previousVisitDate
@@ -1356,12 +1421,18 @@ async function handleSavePrescription(event) {
         // Update in-memory patient & cache immediately (0ms!)
         if (currentPatient) {
             currentPatient.last_visit_date = newRx.created_at || new Date().toISOString();
+            if (newRx.next_visit_date) {
+                currentPatient.next_visit_date = newRx.next_visit_date;
+            }
             if (!currentPatient.prescriptions) currentPatient.prescriptions = [];
             currentPatient.prescriptions.unshift(newRx);
 
             const idx = loadedPatients.findIndex(p => p.patient_id === currentPatient.patient_id || String(p.id) === String(currentPatient.id));
             if (idx !== -1) {
                 loadedPatients[idx].last_visit_date = currentPatient.last_visit_date;
+                if (newRx.next_visit_date) {
+                    loadedPatients[idx].next_visit_date = newRx.next_visit_date;
+                }
                 try { localStorage.setItem('clinic_cached_patients', JSON.stringify(loadedPatients)); } catch (e) {}
                 applySortingAndRender();
             }

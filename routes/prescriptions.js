@@ -21,7 +21,7 @@ async function nextRxId() {
 // ── POST /api/prescriptions — Create a new prescription ──
 router.post('/', async (req, res) => {
     try {
-        const { patient_id, complaints, diagnosis, tests, notes, medicines, previous_visit_date } = req.body;
+        const { patient_id, complaints, diagnosis, tests, next_visit_date, notes, medicines, previous_visit_date } = req.body;
 
         if (!patient_id) {
             return res.status(400).json({ error: 'Patient ID is required.' });
@@ -74,6 +74,7 @@ router.post('/', async (req, res) => {
                 complaints,
                 diagnosis,
                 tests: tests || '',
+                next_visit_date: next_visit_date || null,
                 notes,
                 medicines: medList,
                 previous_visit_date: prevDate
@@ -82,7 +83,8 @@ router.post('/', async (req, res) => {
                 ...newRx,
                 patient_code: ptCode || patient_id,
                 medicines: medList,
-                previous_visit_date: prevDate
+                previous_visit_date: prevDate,
+                next_visit_date: next_visit_date || null
             });
         }
 
@@ -92,6 +94,7 @@ router.post('/', async (req, res) => {
                 complaints,
                 diagnosis,
                 tests: tests || '',
+                next_visit_date: next_visit_date || null,
                 notes,
                 medicines: medList,
                 previous_visit_date: prevDate
@@ -100,7 +103,8 @@ router.post('/', async (req, res) => {
                 ...newRx,
                 patient_code: ptCode || patient_id,
                 medicines: medList,
-                previous_visit_date: prevDate
+                previous_visit_date: prevDate,
+                next_visit_date: next_visit_date || null
             });
         }
         const rxId = await nextRxId();
@@ -110,17 +114,25 @@ router.post('/', async (req, res) => {
             let result;
             try {
                 result = await tx.run(
-                    `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, tests, notes, previous_visit_date, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [rxId, ptNumId, complaints || '', diagnosis || '', tests || '', notes || '', prevDate || null, nowIso]
+                    `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, tests, next_visit_date, notes, previous_visit_date, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [rxId, ptNumId, complaints || '', diagnosis || '', tests || '', next_visit_date || null, notes || '', prevDate || null, nowIso]
                 );
             } catch (_) {
-                // Fallback if tests column not yet added
-                result = await tx.run(
-                    `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes, previous_visit_date, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [rxId, ptNumId, complaints || '', diagnosis || '', notes || '', prevDate || null, nowIso]
-                );
+                // Fallback if next_visit_date or tests column not yet added
+                try {
+                    result = await tx.run(
+                        `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, tests, notes, previous_visit_date, created_at)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [rxId, ptNumId, complaints || '', diagnosis || '', tests || '', notes || '', prevDate || null, nowIso]
+                    );
+                } catch (__) {
+                    result = await tx.run(
+                        `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes, previous_visit_date, created_at)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        [rxId, ptNumId, complaints || '', diagnosis || '', notes || '', prevDate || null, nowIso]
+                    );
+                }
             }
             const pId = result.lastInsertRowid;
 
@@ -134,11 +146,18 @@ router.post('/', async (req, res) => {
                 }
             }
 
-            // Update patient's last_visit_date in local DB
-            await tx.run(
-                `UPDATE patients SET last_visit_date = ? WHERE id = ? OR patient_id = ?`,
-                [nowIso, ptNumId, ptCode]
-            );
+            // Update patient's last_visit_date and next_visit_date in local DB
+            try {
+                await tx.run(
+                    `UPDATE patients SET last_visit_date = ?, next_visit_date = ? WHERE id = ? OR patient_id = ?`,
+                    [nowIso, next_visit_date || null, ptNumId, ptCode]
+                );
+            } catch (_) {
+                await tx.run(
+                    `UPDATE patients SET last_visit_date = ? WHERE id = ? OR patient_id = ?`,
+                    [nowIso, ptNumId, ptCode]
+                );
+            }
 
             return pId;
         });
@@ -150,6 +169,7 @@ router.post('/', async (req, res) => {
             complaints,
             diagnosis,
             tests: tests || '',
+            next_visit_date: next_visit_date || null,
             notes,
             previous_visit_date: prevDate,
             medicines: medList,

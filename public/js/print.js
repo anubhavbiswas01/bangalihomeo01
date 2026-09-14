@@ -237,6 +237,25 @@ function renderPrescription(patient, rxData, forceBlank = false) {
             notesContainer.style.display = 'none';
         }
     }
+
+    // Next Follow-up Visit Notice
+    const nextVisitBox = document.getElementById('printedNextVisitBox');
+    const nextVisitDateEl = document.getElementById('printedNextVisitDate');
+    if (nextVisitBox && nextVisitDateEl) {
+        if (rxData && rxData.next_visit_date) {
+            const nvd = new Date(rxData.next_visit_date);
+            let dateFormatted = rxData.next_visit_date;
+            if (!isNaN(nvd.getTime())) {
+                const dayStr = nvd.toLocaleDateString('en-US', { weekday: 'short' });
+                const fullStr = nvd.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                dateFormatted = `${fullStr} (${dayStr})`;
+            }
+            nextVisitDateEl.textContent = dateFormatted;
+            nextVisitBox.style.display = 'block';
+        } else {
+            nextVisitBox.style.display = 'none';
+        }
+    }
 }
 
 // ── Render Clean Blank OPD Pad for Pen Writing ──
@@ -268,6 +287,9 @@ function renderBlankPenPad() {
 
     const notesContainer = document.getElementById('printedAdviceNotes');
     if (notesContainer) { notesContainer.innerHTML = ''; notesContainer.style.display = 'none'; }
+
+    const nextVisitBox = document.getElementById('printedNextVisitBox');
+    if (nextVisitBox) { nextVisitBox.style.display = 'none'; }
 }
 
 function updateBlankToggleButton(isBlank) {

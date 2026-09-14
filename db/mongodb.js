@@ -334,6 +334,7 @@ async function createPrescription(data) {
         complaints: data.complaints || '',
         diagnosis: data.diagnosis || '',
         tests: data.tests || '',
+        next_visit_date: data.next_visit_date ? String(data.next_visit_date).trim() : null,
         notes: data.notes || '',
         previous_visit_date: prevVisitDate,
         medicines: Array.isArray(data.medicines) ? data.medicines : [],
@@ -342,7 +343,11 @@ async function createPrescription(data) {
 
     await db.collection('prescriptions').insertOne({ ...newRx });
 
-    // Update patient's last_visit_date
+    // Update patient's last_visit_date and next_visit_date
+    const ptUpdate = { last_visit_date: nowIso };
+    if (data.next_visit_date) {
+        ptUpdate.next_visit_date = String(data.next_visit_date).trim();
+    }
     await db.collection('patients').updateOne(
         {
             $or: [
@@ -350,7 +355,7 @@ async function createPrescription(data) {
                 { id: Number(data.patient_id) }
             ]
         },
-        { $set: { last_visit_date: nowIso } }
+        { $set: ptUpdate }
     );
 
     delete newRx._id;

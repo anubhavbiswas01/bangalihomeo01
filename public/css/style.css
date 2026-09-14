@@ -4632,6 +4632,86 @@ body.dark-mode .empty-history-desc {
     color: #94a3b8 !important;
 }
 
+/* Quick Next Visit Suggestion Chips */
+.quick-visit-chip {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.quick-visit-chip:hover {
+    background: #059669;
+    color: #ffffff;
+    border-color: #059669;
+    transform: translateY(-1px);
+}
+
+.quick-visit-chip.chip-clear {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.quick-visit-chip.chip-clear:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
+.rx-next-pill {
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #a7f3d0;
+}
+
+/* Dark Mode Next Visit Styles */
+body.dark-mode .quick-visit-chip {
+    background: #062820 !important;
+    color: #34d399 !important;
+    border-color: #065f46 !important;
+}
+
+body.dark-mode .quick-visit-chip:hover {
+    background: #059669 !important;
+    color: #ffffff !important;
+    border-color: #10b981 !important;
+}
+
+body.dark-mode .quick-visit-chip.chip-clear {
+    background: #2a1515 !important;
+    color: #fca5a5 !important;
+    border-color: #7f1d1d !important;
+}
+
+body.dark-mode .quick-visit-chip.chip-clear:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #dc2626 !important;
+}
+
+body.dark-mode .rx-next-pill {
+    background: #064e3b !important;
+    color: #86efac !important;
+    border-color: #059669 !important;
+}
+
+body.dark-mode #rxNextVisitCalculated {
+    color: #2dd4bf !important;
+}
+
+
 
 
 
