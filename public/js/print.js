@@ -214,6 +214,18 @@ function renderPrescription(patient, rxData, forceBlank = false) {
         }
     }
 
+    // Recommended Tests / Lab Investigations
+    const testsEl = document.getElementById('printededTests');
+    if (testsEl) {
+        if (rxData && rxData.tests && rxData.tests.trim()) {
+            testsEl.innerHTML = `<strong>RECOMMENDED TESTS / LAB INVESTIGATIONS:</strong><br>${escapeHtml(rxData.tests)}`;
+            testsEl.style.display = 'block';
+        } else {
+            testsEl.innerHTML = '';
+            testsEl.style.display = 'none';
+        }
+    }
+
     // Special Instructions / Advice Notes
     const notesContainer = document.getElementById('printedAdviceNotes');
     if (notesContainer) {
@@ -247,6 +259,9 @@ function renderBlankPenPad() {
 
     const compEl = document.getElementById('printedComplaints');
     if (compEl) { compEl.innerHTML = ''; compEl.style.display = 'none'; }
+
+    const testsEl = document.getElementById('printededTests');
+    if (testsEl) { testsEl.innerHTML = ''; testsEl.style.display = 'none'; }
 
     const medContainer = document.getElementById('printedMedicinesList');
     if (medContainer) { medContainer.innerHTML = ''; medContainer.style.display = 'none'; }

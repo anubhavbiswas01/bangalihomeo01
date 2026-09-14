@@ -2406,13 +2406,31 @@ body.modal-open {
 
 .empty-history-box {
     background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: var(--radius);
-    padding: 1.5rem;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2.5rem 1rem;
     text-align: center;
     color: #64748b;
-    font-size: 0.875rem;
 }
+
+.empty-history-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-history-title {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.empty-history-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
 
 .empty-state-vibrant {
     grid-column: 1 / -1;
@@ -4555,6 +4573,65 @@ body.dark-mode .keypad-btn.keypad-fn {
 body.dark-mode .lock-remember-label {
     color: #94a3b8 !important;
 }
+
+/* Quick Test Suggestion Chips */
+.quick-test-chip {
+    background: #f0fdfa;
+    color: #0f766e;
+    border: 1px solid #99f6e4;
+    border-radius: 6px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.quick-test-chip:hover {
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
+    transform: translateY(-1px);
+}
+
+.rx-test-text {
+    color: #0f766e;
+    font-weight: 700;
+}
+
+/* Dark Mode Support for Tests & Empty History Box */
+body.dark-mode .quick-test-chip {
+    background: #132724 !important;
+    color: #2dd4bf !important;
+    border-color: #115e59 !important;
+}
+
+body.dark-mode .quick-test-chip:hover {
+    background: #0f766e !important;
+    color: #ffffff !important;
+    border-color: #14b8a6 !important;
+}
+
+body.dark-mode .rx-test-text {
+    color: #2dd4bf !important;
+}
+
+body.dark-mode .empty-history-box {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .empty-history-title {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .empty-history-desc {
+    color: #94a3b8 !important;
+}
+
 
 
 

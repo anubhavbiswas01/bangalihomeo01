@@ -513,6 +513,30 @@
                         </div>
                     </div>
 
+                    <!-- Medical Tests / Lab Investigations Section -->
+                    <div class="form-group rx-tests-group" style="margin-bottom: 1.1rem;">
+                        <div class="rx-tests-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <label style="margin-bottom: 0; font-weight: 700; color: inherit; display: flex; align-items: center; gap: 0.35rem;">
+                                <span>🧪</span> Recommended Tests / Lab Investigations
+                            </label>
+                            <span class="text-hint" style="font-size: 0.74rem; color: #64748b;">(Optional tests to recommend to patient)</span>
+                        </div>
+                        <input type="text" id="rxTests" placeholder="e.g. CBC, Blood Sugar (F/PP), USG Whole Abdomen, Thyroid Profile (TSH), Urine R/E...">
+                        <div class="quick-test-chips-wrap" style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.45rem; align-items: center;">
+                            <span style="font-size: 0.72rem; color: #64748b; font-weight: 700;">⚡ Quick Add:</span>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('CBC')">+ CBC</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('Blood Sugar (F/PP)')">+ Blood Sugar</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('HbA1c')">+ HbA1c</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('Thyroid (TSH)')">+ Thyroid</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('Lipid Profile')">+ Lipid Profile</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('LFT')">+ LFT</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('KFT / Creatinine')">+ KFT</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('Urine R/E')">+ Urine R/E</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('USG Whole Abdomen')">+ USG Abdomen</button>
+                            <button type="button" class="quick-test-chip" onclick="appendRxTest('Chest X-Ray')">+ X-Ray</button>
+                        </div>
+                    </div>
+
                     <!-- Prescribed Medicines Section -->
                     <div class="rx-medicines-section">
                         <div class="rx-med-header">

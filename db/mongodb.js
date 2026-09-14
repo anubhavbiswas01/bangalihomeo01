@@ -333,6 +333,7 @@ async function createPrescription(data) {
         patient_id: String(data.patient_id),
         complaints: data.complaints || '',
         diagnosis: data.diagnosis || '',
+        tests: data.tests || '',
         notes: data.notes || '',
         previous_visit_date: prevVisitDate,
         medicines: Array.isArray(data.medicines) ? data.medicines : [],

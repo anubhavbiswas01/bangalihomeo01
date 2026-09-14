@@ -21,7 +21,7 @@ async function nextRxId() {
 // ── POST /api/prescriptions — Create a new prescription ──
 router.post('/', async (req, res) => {
     try {
-        const { patient_id, complaints, diagnosis, notes, medicines, previous_visit_date } = req.body;
+        const { patient_id, complaints, diagnosis, tests, notes, medicines, previous_visit_date } = req.body;
 
         if (!patient_id) {
             return res.status(400).json({ error: 'Patient ID is required.' });
@@ -73,6 +73,7 @@ router.post('/', async (req, res) => {
                 patient_id: ptCode || patient_id,
                 complaints,
                 diagnosis,
+                tests: tests || '',
                 notes,
                 medicines: medList,
                 previous_visit_date: prevDate
@@ -90,6 +91,7 @@ router.post('/', async (req, res) => {
                 patient_id: ptCode || patient_id,
                 complaints,
                 diagnosis,
+                tests: tests || '',
                 notes,
                 medicines: medList,
                 previous_visit_date: prevDate
@@ -105,11 +107,21 @@ router.post('/', async (req, res) => {
         const nowIso = new Date().toISOString();
 
         const prescriptionId = await db.transaction(async (tx) => {
-            const result = await tx.run(
-                `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes, previous_visit_date, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [rxId, ptNumId, complaints || '', diagnosis || '', notes || '', prevDate || null, nowIso]
-            );
+            let result;
+            try {
+                result = await tx.run(
+                    `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, tests, notes, previous_visit_date, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [rxId, ptNumId, complaints || '', diagnosis || '', tests || '', notes || '', prevDate || null, nowIso]
+                );
+            } catch (_) {
+                // Fallback if tests column not yet added
+                result = await tx.run(
+                    `INSERT INTO prescriptions (rx_id, patient_id, complaints, diagnosis, notes, previous_visit_date, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    [rxId, ptNumId, complaints || '', diagnosis || '', notes || '', prevDate || null, nowIso]
+                );
+            }
             const pId = result.lastInsertRowid;
 
             for (const med of medList) {
@@ -137,6 +149,7 @@ router.post('/', async (req, res) => {
             patient_id,
             complaints,
             diagnosis,
+            tests: tests || '',
             notes,
             previous_visit_date: prevDate,
             medicines: medList,

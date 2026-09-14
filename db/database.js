@@ -47,6 +47,12 @@ async function init() {
         // column already exists
     }
 
+    try {
+        await client.execute('ALTER TABLE prescriptions ADD COLUMN tests TEXT');
+    } catch (e) {
+        // column already exists
+    }
+
     await client.execute(`
         CREATE TABLE IF NOT EXISTS prescription_medicines (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

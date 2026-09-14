@@ -636,10 +636,11 @@ async function loadPatient(patientId) {
                         </button>
                     </div>
 
-                    ${(rx.complaints || rx.diagnosis) ? `
+                    ${(rx.complaints || rx.diagnosis || rx.tests) ? `
                         <div class="rx-clinical-row">
                             ${rx.diagnosis ? `<div><strong>Diagnosis:</strong> <span class="rx-diag-text">${escapeHtml(rx.diagnosis)}</span></div>` : ''}
                             ${rx.complaints ? `<div><strong>Chief Complaints:</strong> <span class="rx-comp-text">${escapeHtml(rx.complaints)}</span></div>` : ''}
+                            ${rx.tests ? `<div><strong>Recommended Tests:</strong> <span class="rx-test-text">🧪 ${escapeHtml(rx.tests)}</span></div>` : ''}
                         </div>
                     ` : ''}
 
@@ -675,10 +676,10 @@ async function loadPatient(patientId) {
             `).join('');
         } else {
             rxHistory.innerHTML = `
-                <div class="empty-history-box" style="text-align: center; padding: 2.5rem 1rem; background: #f8fafc; border-radius: 12px; border: 1.5px dashed #cbd5e1;">
-                    <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">💊</div>
-                    <p style="font-weight: 700; color: #1e293b; margin-bottom: 0.25rem;">No past prescriptions recorded yet for ${escapeHtml(data.name)}.</p>
-                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Click below to prescribe medicines or print a blank OPD slip.</p>
+                <div class="empty-history-box">
+                    <div class="empty-history-icon">💊</div>
+                    <p class="empty-history-title">No past prescriptions recorded yet for ${escapeHtml(data.name)}.</p>
+                    <p class="empty-history-desc">Click below to prescribe medicines or print a blank OPD slip.</p>
                     <div class="flex gap-1" style="justify-content: center;">
                         <button class="btn btn-emerald btn-lg" onclick="openAddRxModal()">
                             💊 + Write First Prescription
@@ -968,9 +969,11 @@ function openAddRxModal() {
     // Reset inputs
     const compEl = document.getElementById('rxComplaints');
     const diagEl = document.getElementById('rxDiagnosis');
+    const testsEl = document.getElementById('rxTests');
     const notesEl = document.getElementById('rxNotes');
     if (compEl) compEl.value = '';
     if (diagEl) diagEl.value = '';
+    if (testsEl) testsEl.value = '';
     if (notesEl) notesEl.value = '';
 
     // Clear and add 2 initial medicine rows
@@ -1274,12 +1277,28 @@ async function deleteMedicineFromCatalog(name) {
     }
 }
 
+function appendRxTest(testName) {
+    const el = document.getElementById('rxTests');
+    if (!el) return;
+    const current = el.value.trim();
+    if (!current) {
+        el.value = testName;
+    } else {
+        const tests = current.split(',').map(t => t.trim().toLowerCase());
+        if (!tests.includes(testName.toLowerCase())) {
+            el.value = current + ', ' + testName;
+        }
+    }
+    el.focus();
+}
+
 async function savePrescriptionData() {
     const patientId = document.getElementById('rxPatientId')?.value || currentPatient?.patient_id;
     if (!patientId) throw new Error('No patient selected.');
 
     const complaints = document.getElementById('rxComplaints')?.value.trim() || '';
     const diagnosis = document.getElementById('rxDiagnosis')?.value.trim() || '';
+    const tests = document.getElementById('rxTests')?.value.trim() || '';
     const notes = document.getElementById('rxNotes')?.value.trim() || '';
     const previousVisitDate = document.getElementById('rxPreviousVisitDate')?.value || null;
 
@@ -1307,6 +1326,7 @@ async function savePrescriptionData() {
         patient_id: patientId,
         complaints,
         diagnosis,
+        tests,
         notes,
         medicines,
         previous_visit_date: previousVisitDate
