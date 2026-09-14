@@ -327,10 +327,38 @@ async function createPrescription(data) {
         }
     }
 
+    // Fetch patient info to embed permanently in prescription
+    const ptFilter = {
+        $or: [
+            { patient_id: String(data.patient_id) },
+            { patient_id: data.patient_id },
+            ...(isNaN(Number(data.patient_id)) ? [] : [{ id: Number(data.patient_id) }])
+        ]
+    };
+    const pt = await db.collection('patients').findOne(ptFilter);
+
+    const ptName = (pt && pt.name) || data.name || data.patient_name || '';
+    const ptCode = (pt && pt.patient_id) || data.patient_code || String(data.patient_id);
+    const ptAge = (pt && pt.age) || data.age || data.patient_age || '';
+    const ptGender = (pt && pt.gender) || data.gender || data.patient_gender || '';
+    const ptPhone = (pt && pt.phone) || data.phone || data.patient_phone || '';
+    const ptAddress = (pt && pt.address) || data.address || data.patient_address || '';
+
     const newRx = {
         id: ids.numericId,
         rx_id: ids.code,
         patient_id: String(data.patient_id),
+        patient_code: ptCode,
+        name: ptName,
+        patient_name: ptName,
+        age: ptAge,
+        patient_age: ptAge,
+        gender: ptGender,
+        patient_gender: ptGender,
+        phone: ptPhone,
+        patient_phone: ptPhone,
+        address: ptAddress,
+        patient_address: ptAddress,
         complaints: data.complaints || '',
         diagnosis: data.diagnosis || '',
         tests: data.tests || '',
@@ -364,12 +392,13 @@ async function createPrescription(data) {
 
 async function getPrescriptionById(rxId) {
     const db = await connect();
-    const strId = String(rxId);
+    const strId = String(rxId).trim();
     const numId = Number(rxId);
 
     const filter = {
         $or: [
             { rx_id: strId },
+            { rx_id: { $regex: new RegExp(`^${strId}$`, 'i') } },
             ...(isNaN(numId) ? [] : [{ id: numId }])
         ]
     };
@@ -381,18 +410,37 @@ async function getPrescriptionById(rxId) {
     // Fetch patient info
     const ptFilter = {
         $or: [
+            { patient_id: String(rx.patient_id) },
             { patient_id: rx.patient_id },
-            { id: Number(rx.patient_id) }
+            ...(rx.patient_code ? [{ patient_id: rx.patient_code }] : []),
+            ...(isNaN(Number(rx.patient_id)) ? [] : [{ id: Number(rx.patient_id) }])
         ]
     };
     const pt = await db.collection('patients').findOne(ptFilter);
     if (pt) {
+        rx.name = pt.name;
         rx.patient_name = pt.name;
         rx.patient_code = pt.patient_id;
+        rx.age = pt.age;
         rx.patient_age = pt.age;
+        rx.gender = pt.gender;
         rx.patient_gender = pt.gender;
+        rx.phone = pt.phone;
         rx.patient_phone = pt.phone;
+        rx.address = pt.address;
         rx.patient_address = pt.address;
+    } else {
+        // Fallbacks to guarantee name & demographics are never missing
+        if (!rx.name && rx.patient_name) rx.name = rx.patient_name;
+        if (!rx.patient_name && rx.name) rx.patient_name = rx.name;
+        if (rx.age === undefined && rx.patient_age !== undefined) rx.age = rx.patient_age;
+        if (rx.patient_age === undefined && rx.age !== undefined) rx.patient_age = rx.age;
+        if (!rx.gender && rx.patient_gender) rx.gender = rx.patient_gender;
+        if (!rx.patient_gender && rx.gender) rx.patient_gender = rx.gender;
+        if (!rx.phone && rx.patient_phone) rx.phone = rx.patient_phone;
+        if (!rx.patient_phone && rx.phone) rx.patient_phone = rx.phone;
+        if (!rx.address && rx.patient_address) rx.address = rx.patient_address;
+        if (!rx.patient_address && rx.address) rx.patient_address = rx.address;
     }
 
     return rx;

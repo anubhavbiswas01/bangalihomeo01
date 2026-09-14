@@ -64,16 +64,34 @@ async function loadPrescription() {
                 const rxData = await res.json();
                 currentLoadedRx = rxData;
                 const patient = {
-                    name: rxData.name,
-                    patient_id: rxData.patient_code || rxData.patient_id,
-                    age: rxData.age,
-                    gender: rxData.gender,
-                    phone: rxData.phone,
-                    address: rxData.address,
-                    created_at: rxData.created_at,
-                    last_visit_date: rxData.previous_visit_date,
+                    name: rxData.name || rxData.patient_name || (currentLoadedPatient && currentLoadedPatient.name) || '',
+                    patient_id: rxData.patient_code || rxData.patient_id || (currentLoadedPatient && currentLoadedPatient.patient_id) || '',
+                    age: (rxData.age !== undefined && rxData.age !== '') ? rxData.age : ((rxData.patient_age !== undefined && rxData.patient_age !== '') ? rxData.patient_age : ((currentLoadedPatient && currentLoadedPatient.age) || '')),
+                    gender: rxData.gender || rxData.patient_gender || (currentLoadedPatient && currentLoadedPatient.gender) || '',
+                    phone: rxData.phone || rxData.patient_phone || (currentLoadedPatient && currentLoadedPatient.phone) || '',
+                    address: rxData.address || rxData.patient_address || (currentLoadedPatient && currentLoadedPatient.address) || '',
+                    created_at: rxData.created_at || (currentLoadedPatient && currentLoadedPatient.created_at),
+                    last_visit_date: rxData.previous_visit_date || (currentLoadedPatient && currentLoadedPatient.last_visit_date),
                     prescriptions: (currentLoadedPatient && currentLoadedPatient.prescriptions) || []
                 };
+
+                // Safety fallback: if patient.name is missing, fetch from /api/patients
+                if (!patient.name && (rxData.patient_code || rxData.patient_id)) {
+                    try {
+                        const ptRes = await fetch(`/api/patients/${encodeURIComponent(rxData.patient_code || rxData.patient_id)}`, { headers });
+                        if (ptRes.ok) {
+                            const ptData = await ptRes.json();
+                            if (ptData && ptData.name) {
+                                patient.name = ptData.name;
+                                if (!patient.age && ptData.age) patient.age = ptData.age;
+                                if (!patient.gender && ptData.gender) patient.gender = ptData.gender;
+                                if (!patient.phone && ptData.phone) patient.phone = ptData.phone;
+                                if (!patient.address && ptData.address) patient.address = ptData.address;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
                 currentLoadedPatient = patient;
                 renderPrescription(patient, rxData, false);
             }
@@ -110,13 +128,21 @@ function renderPrescription(patient, rxData, forceBlank = false) {
 
     const now = new Date((rxData && rxData.created_at) || (patient && patient.created_at) || Date.now());
 
-    // Patient Fields
-    const pName = (patient && patient.name) || (rxData && rxData.name) || '';
-    const pAge = (patient && patient.age) || (rxData && rxData.age) || '';
-    const pGender = (patient && patient.gender) || (rxData && rxData.gender) || '';
-    const pMobile = (patient && patient.phone) || (rxData && rxData.phone) || '';
-    const pId = (patient && patient.patient_id) || (rxData && (rxData.patient_code || rxData.patient_id)) || '';
-    const pAddress = (patient && patient.address) || (rxData && rxData.address) || '';
+    // Patient Fields - with multi-fallback so fields never disappear after async fetch
+    let pName = (patient && patient.name) || (rxData && (rxData.name || rxData.patient_name)) || '';
+    let pAge = (patient && patient.age !== undefined && patient.age !== '') ? patient.age : (rxData && (rxData.age !== undefined ? rxData.age : rxData.patient_age)) || '';
+    let pGender = (patient && patient.gender) || (rxData && (rxData.gender || rxData.patient_gender)) || '';
+    let pMobile = (patient && patient.phone) || (rxData && (rxData.phone || rxData.patient_phone)) || '';
+    let pId = (patient && patient.patient_id) || (rxData && (rxData.patient_code || rxData.patient_id)) || '';
+    let pAddress = (patient && patient.address) || (rxData && (rxData.address || rxData.patient_address)) || '';
+
+    // If currentLoadedPatient has a value that was already rendered, NEVER wipe it out!
+    if (!pName && currentLoadedPatient && currentLoadedPatient.name) pName = currentLoadedPatient.name;
+    if (!pAge && currentLoadedPatient && currentLoadedPatient.age) pAge = currentLoadedPatient.age;
+    if (!pGender && currentLoadedPatient && currentLoadedPatient.gender) pGender = currentLoadedPatient.gender;
+    if (!pMobile && currentLoadedPatient && currentLoadedPatient.phone) pMobile = currentLoadedPatient.phone;
+    if (!pId && currentLoadedPatient && currentLoadedPatient.patient_id) pId = currentLoadedPatient.patient_id;
+    if (!pAddress && currentLoadedPatient && currentLoadedPatient.address) pAddress = currentLoadedPatient.address;
 
     document.getElementById('pName').innerHTML = pName ? pName.toUpperCase() : '<span class="blank-line blank-line-lg"></span>';
     document.getElementById('pAge').innerHTML = pAge ? `${pAge} Yrs.` : '<span class="blank-line blank-line-sm"></span>';

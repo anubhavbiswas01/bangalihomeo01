@@ -31,18 +31,21 @@ router.post('/', async (req, res) => {
 
         let ptNumId = patient_id;
         let ptCode = patient_id;
+        let ptDetails = null;
         try {
             if (useMongo()) {
                 const pt = await mongo.getPatientById(patient_id);
                 if (pt) {
                     ptNumId = pt.id;
                     ptCode = pt.patient_id;
+                    ptDetails = pt;
                 }
             } else {
-                const ptRow = await db.get('SELECT id, patient_id FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
+                const ptRow = await db.get('SELECT id, patient_id, name, age, gender, phone, address FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
                 if (ptRow) {
                     ptNumId = ptRow.id;
                     ptCode = ptRow.patient_id;
+                    ptDetails = ptRow;
                 }
             }
         } catch (e) {
@@ -71,6 +74,12 @@ router.post('/', async (req, res) => {
         if (useMongo()) {
             const newRx = await mongo.createPrescription({
                 patient_id: ptCode || patient_id,
+                name: (ptDetails && ptDetails.name) || '',
+                patient_name: (ptDetails && ptDetails.name) || '',
+                age: (ptDetails && ptDetails.age) || '',
+                gender: (ptDetails && ptDetails.gender) || '',
+                phone: (ptDetails && ptDetails.phone) || '',
+                address: (ptDetails && ptDetails.address) || '',
                 complaints,
                 diagnosis,
                 tests: tests || '',
@@ -81,6 +90,8 @@ router.post('/', async (req, res) => {
             });
             return res.status(201).json({
                 ...newRx,
+                name: (ptDetails && ptDetails.name) || newRx.name || '',
+                patient_name: (ptDetails && ptDetails.name) || newRx.patient_name || '',
                 patient_code: ptCode || patient_id,
                 medicines: medList,
                 previous_visit_date: prevDate,
