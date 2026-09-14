@@ -60,11 +60,19 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
+.nav-container {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
 .nav-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 72px;
+    min-height: 72px;
+    gap: 1.25rem;
 }
 
 .nav-brand {
@@ -73,6 +81,8 @@ body {
     gap: 0.75rem;
     text-decoration: none;
     color: inherit;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .brand-leaf {
@@ -89,29 +99,31 @@ body {
 }
 
 .brand-logo-img {
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #0f766e;
-    box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+    box-shadow: 0 3px 8px rgba(15, 118, 110, 0.2);
     background: #ffffff;
     flex-shrink: 0;
 }
 
 .brand-text h1 {
-    font-size: 1.15rem;
+    font-size: 1.12rem;
     font-weight: 800;
     color: #042f2e;
     letter-spacing: -0.2px;
     line-height: 1.2;
+    white-space: nowrap;
 }
 
 .brand-text span {
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     color: var(--text-muted);
     font-weight: 600;
     display: block;
+    white-space: nowrap;
 }
 
 .nav-links {
@@ -119,13 +131,20 @@ body {
     align-items: center;
     gap: 1.5rem;
     list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    white-space: nowrap !important;
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    white-space: nowrap !important;
     transition: color 0.15s ease;
 }
 
@@ -133,13 +152,34 @@ body {
     color: var(--primary);
 }
 
+.mobile-nav-cta-wrap {
+    display: none;
+}
+
+.nav-end-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .nav-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
     background: linear-gradient(135deg, #0f766e, #15803d);
     color: #ffffff !important;
-    padding: 0.6rem 1.25rem;
-    border-radius: var(--radius-sm);
+    padding: 0.55rem 1.15rem;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap !important;
     box-shadow: 0 3px 10px rgba(15, 118, 110, 0.25);
     transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    line-height: 1;
 }
 
 .nav-cta-btn:hover {
@@ -147,27 +187,24 @@ body {
     box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35);
 }
 
-.nav-end-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
 .patient-theme-toggle {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.35rem;
-    padding: 0.4rem 0.85rem;
+    padding: 0.45rem 0.8rem;
     background: #f1f5f9;
     border: 1.5px solid #cbd5e1;
     border-radius: 20px;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     font-weight: 700;
     color: #334155;
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
+    white-space: nowrap !important;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .patient-theme-toggle:hover {
@@ -178,11 +215,19 @@ body {
 
 .mobile-toggle-btn {
     display: none;
-    background: none;
-    border: none;
-    font-size: 1.6rem;
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.35rem 0.65rem;
+    font-size: 1.25rem;
     color: var(--primary);
     cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+}
+
+.mobile-toggle-btn:hover {
+    background: #e2e8f0;
 }
 
 /* ── Hero Section ── */
@@ -1142,13 +1187,28 @@ body.dark-mode .patient-theme-toggle:hover {
 }
 
 body.dark-mode .mobile-toggle-btn {
+    background: #1e293b;
+    border-color: #334155;
     color: #2dd4bf;
+}
+
+body.dark-mode .mobile-toggle-btn:hover {
+    background: #334155;
 }
 
 body.dark-mode .nav-links.mobile-open {
     background: #0f172a;
     border-bottom-color: #1e293b;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .mobile-nav-cta-wrap {
+    border-top-color: #1e293b;
+}
+
+body.dark-mode .mobile-nav-cta-btn {
+    background: linear-gradient(135deg, #0d9488, #16a34a);
+    color: #ffffff !important;
 }
 
 /* ── Hero Section in Dark Mode ── */
@@ -1687,6 +1747,63 @@ body.dark-mode .btn-close-confirm:hover {
 }
 
 /* ── Mobile & Tablet Responsiveness ── */
+@media (max-width: 1200px) {
+    .nav-links {
+        gap: 1.1rem;
+    }
+    .nav-links a {
+        font-size: 0.88rem;
+    }
+    .brand-text h1 {
+        font-size: 1.05rem;
+    }
+    .brand-text span {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 1040px) {
+    .nav-links {
+        display: none;
+    }
+    .nav-links.mobile-open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 72px;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        padding: 1.5rem;
+        border-bottom: 2px solid var(--border);
+        box-shadow: var(--shadow-md);
+        gap: 1rem;
+        z-index: 1000;
+    }
+    .mobile-nav-cta-wrap {
+        display: block;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+    }
+    .mobile-nav-cta-btn {
+        display: block;
+        text-align: center;
+        background: linear-gradient(135deg, #0f766e, #15803d);
+        color: #ffffff !important;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+    }
+    .mobile-toggle-btn {
+        display: block;
+    }
+    #navDesktopBookBtn {
+        display: none;
+    }
+}
+
 @media (max-width: 900px) {
     .hero-grid {
         grid-template-columns: 1fr;
@@ -1708,25 +1825,6 @@ body.dark-mode .btn-close-confirm:hover {
 }
 
 @media (max-width: 640px) {
-    .nav-links {
-        display: none;
-    }
-    .nav-links.mobile-open {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        top: 72px;
-        left: 0;
-        right: 0;
-        background: #ffffff;
-        padding: 1.5rem;
-        border-bottom: 2px solid var(--border);
-        box-shadow: var(--shadow-md);
-        gap: 1rem;
-    }
-    .mobile-toggle-btn {
-        display: block;
-    }
     .hero-title {
         font-size: 1.95rem;
     }
@@ -1741,5 +1839,27 @@ body.dark-mode .btn-close-confirm:hover {
     }
     .doctor-pillars {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand-text span {
+        display: none;
+    }
+    .brand-text h1 {
+        font-size: 1rem;
+    }
+    .brand-logo-img {
+        width: 38px;
+        height: 38px;
+    }
+    .theme-label {
+        display: none;
+    }
+    .patient-theme-toggle {
+        padding: 0.4rem 0.6rem;
+    }
+    .nav-container {
+        padding: 0 1rem;
     }
 }

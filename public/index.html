@@ -23,7 +23,7 @@
 
     <!-- ─── 1. Header / Navigation ─── -->
     <header class="patient-nav">
-        <div class="container nav-wrapper">
+        <div class="nav-container nav-wrapper">
             <a href="/" class="nav-brand">
                 <img src="/images/logo.jpg" alt="Bangali Homeopathic Clinic Logo" class="brand-logo-img">
                 <div class="brand-text">
@@ -36,12 +36,17 @@
                 <li><a href="#home">Home</a></li>
                 <li><a href="#doctor">About Doctor</a></li>
                 <li><a href="#timings">Clinic Timings</a></li>
-                <li><a href="#appointment" class="nav-cta-btn">Book Appointment</a></li>
                 <li><a href="#clinic-info">Clinic Information</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li class="mobile-nav-cta-wrap">
+                    <a href="#appointment" class="mobile-nav-cta-btn">📅 Book Appointment</a>
+                </li>
             </ul>
 
             <div class="nav-end-actions">
+                <a href="#appointment" class="nav-cta-btn" id="navDesktopBookBtn">
+                    📅 Book Appointment
+                </a>
                 <button type="button" id="publicThemeToggleBtn" class="patient-theme-toggle" onclick="togglePublicTheme()" title="Toggle Dark / Light Mode" aria-label="Toggle Dark / Light Mode">
                     🌙 <span class="theme-label">Dark</span>
                 </button>
