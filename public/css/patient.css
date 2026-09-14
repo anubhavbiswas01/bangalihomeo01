@@ -1057,6 +1057,65 @@ body.modal-open {
     box-shadow: 0 4px 10px rgba(21, 128, 61, 0.3);
 }
 
+/* Clinic Map & Directions */
+.clinic-map-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #f0fdfa;
+    color: var(--primary);
+    border: 1.5px solid #99f6e4;
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    transition: all 0.15s ease;
+}
+
+.clinic-map-pill-btn:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+.clinic-map-embed-box {
+    margin-top: 1.5rem;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.clinic-map-iframe {
+    width: 100%;
+    height: 220px;
+    border: none;
+    display: block;
+}
+
+.btn-open-google-maps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #0f766e, #15803d);
+    color: #ffffff !important;
+    text-decoration: none;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.btn-open-google-maps:hover {
+    background: linear-gradient(135deg, #115e59, #166534);
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+}
+
 /* ── Footer ── */
 .patient-footer {
     background: #042f2e;
@@ -1503,6 +1562,28 @@ body.dark-mode .contact-text p {
 
 body.dark-mode .contact-phone-link {
     color: #2dd4bf;
+}
+
+body.dark-mode .clinic-map-pill-btn {
+    background: #132724;
+    color: #2dd4bf;
+    border-color: #134e4a;
+}
+
+body.dark-mode .clinic-map-pill-btn:hover {
+    background: #2dd4bf;
+    color: #0f172a;
+    border-color: #2dd4bf;
+}
+
+body.dark-mode .clinic-map-embed-box {
+    background: #090e17;
+    border-color: #1e293b;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .btn-open-google-maps {
+    background: linear-gradient(135deg, #0d9488, #16a34a);
 }
 
 /* ── Footer in Dark Mode ── */
