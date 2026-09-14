@@ -1173,29 +1173,26 @@ body.modal-open {
     text-decoration: underline;
 }
 
-.developer-credit {
-    padding-top: 1.25rem;
-    margin-top: 1.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.83rem;
+.footer-dev-credit {
+    margin-top: 6px;
+    font-size: 0.8rem;
     color: #a7f3d0;
-    text-align: center;
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
-.developer-credit .dev-name {
+.footer-dev-credit .dev-name {
     color: #ffffff;
     font-weight: 700;
     text-decoration: underline;
-    text-underline-offset: 3px;
+    text-underline-offset: 2px;
     transition: color 0.15s ease;
 }
 
-.developer-credit .dev-name:hover {
+.footer-dev-credit .dev-name:hover {
     color: #5eead4;
 }
 
-.developer-credit .dev-linkedin {
+.footer-dev-credit .dev-linkedin {
     color: #5eead4;
     font-weight: 600;
     text-decoration: none;
@@ -1205,7 +1202,7 @@ body.modal-open {
     transition: color 0.15s ease;
 }
 
-.developer-credit .dev-linkedin:hover {
+.footer-dev-credit .dev-linkedin:hover {
     color: #ffffff;
     text-decoration: underline;
 }
@@ -1646,24 +1643,23 @@ body.dark-mode .doctor-portal-link {
     color: #2dd4bf;
 }
 
-body.dark-mode .developer-credit {
-    border-top-color: #1e293b;
+body.dark-mode .footer-dev-credit {
     color: #94a3b8;
 }
 
-body.dark-mode .developer-credit .dev-name {
+body.dark-mode .footer-dev-credit .dev-name {
     color: #f1f5f9;
 }
 
-body.dark-mode .developer-credit .dev-name:hover {
+body.dark-mode .footer-dev-credit .dev-name:hover {
     color: #2dd4bf;
 }
 
-body.dark-mode .developer-credit .dev-linkedin {
+body.dark-mode .footer-dev-credit .dev-linkedin {
     color: #2dd4bf;
 }
 
-body.dark-mode .developer-credit .dev-linkedin:hover {
+body.dark-mode .footer-dev-credit .dev-linkedin:hover {
     color: #5eead4;
 }
 
