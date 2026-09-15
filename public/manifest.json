@@ -1,0 +1,56 @@
+{
+  "name": "Bangali Homeopathic Clinic",
+  "short_name": "Bangali Homeo",
+  "description": "Bangali Homeopathic Clinic - Patient Appointments & Digital Prescription Management",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#042f2e",
+  "theme_color": "#0f766e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/images/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Doctor Portal",
+      "short_name": "Doctor",
+      "description": "Doctor Prescription & Patient Manager",
+      "url": "/admin",
+      "icons": [
+        {
+          "src": "/images/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Book Appointment",
+      "short_name": "Book OPD",
+      "description": "Book a new clinic visit",
+      "url": "/#appointment",
+      "icons": [
+        {
+          "src": "/images/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

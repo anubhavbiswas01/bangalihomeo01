@@ -6,6 +6,13 @@
     <title>Bangali Homeopathic Clinic — Patient Records & OPD</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <!-- PWA & Mobile App Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bangali Homeo">
+    <link rel="apple-touch-icon" href="/images/icon-180.png">
     <script>
         (function() {
             try {
@@ -32,6 +39,9 @@
             </div>
         </a>
         <div class="navbar-right">
+            <button type="button" id="adminPwaInstallBtn" class="nav-btn nav-btn-appts" style="display: none; background: #0f766e; border-color: #14b8a6; color: #ffffff;" onclick="triggerAdminPwaInstall()" title="Install Doctor Portal App">
+                📲 <span>Install App</span>
+            </button>
             <button type="button" id="darkModeToggleBtn" class="nav-btn nav-btn-theme" onclick="toggleDarkMode()" title="Toggle Dark / Light Mode">
                 🌙 <span class="theme-toggle-text">Dark Mode</span>
             </button>
@@ -862,5 +872,39 @@
     <div class="toast" id="toast"></div>
 
     <script src="/js/app.js"></script>
+    <script>
+        // ── PWA Service Worker Registration & Doctor Portal Install Handling ──
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ Doctor Portal PWA active:', reg.scope))
+                    .catch(err => console.warn('PWA error:', err));
+            });
+        }
+
+        let adminDeferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            adminDeferredPrompt = e;
+            const btn = document.getElementById('adminPwaInstallBtn');
+            if (btn) btn.style.display = 'inline-flex';
+        });
+
+        window.triggerAdminPwaInstall = async function() {
+            if (!adminDeferredPrompt) return;
+            adminDeferredPrompt.prompt();
+            const { outcome } = await adminDeferredPrompt.userChoice;
+            console.log('Doctor portal PWA install outcome:', outcome);
+            adminDeferredPrompt = null;
+            const btn = document.getElementById('adminPwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        };
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ Doctor Portal App installed successfully!');
+            const btn = document.getElementById('adminPwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        });
+    </script>
 </body>
 </html>

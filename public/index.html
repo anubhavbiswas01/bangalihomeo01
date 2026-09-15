@@ -7,6 +7,13 @@
     <meta name="description" content="Bangali Homeopathic Clinic. Consultation with Dr. Sapan Bakshi, BHMS (WBUHS) Kolkata, Reg. No. 30444. Gentle, personalized homeopathic care in Madhubani, Bihar.">
     <link rel="stylesheet" href="/css/patient.css">
     <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <!-- PWA & Mobile App Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bangali Homeo">
+    <link rel="apple-touch-icon" href="/images/icon-180.png">
     <script>
         (function() {
             try {
@@ -44,6 +51,9 @@
             </ul>
 
             <div class="nav-end-actions">
+                <button type="button" id="pwaInstallBtn" class="pwa-install-btn" style="display: none;" onclick="triggerPwaInstall()" title="Install Bangali Homeo App">
+                    📲 <span class="install-label">Install App</span>
+                </button>
                 <a href="#appointment" class="nav-cta-btn" id="navDesktopBookBtn">
                     📅 Book Appointment
                 </a>
@@ -502,6 +512,39 @@
     <script src="/js/patient.js"></script>
     <script>
         document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+
+        // ── PWA Service Worker Registration & Install Handling ──
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ PWA ServiceWorker active:', reg.scope))
+                    .catch(err => console.warn('PWA ServiceWorker error:', err));
+            });
+        }
+
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.style.display = 'inline-flex';
+        });
+
+        window.triggerPwaInstall = async function() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('PWA installation outcome:', outcome);
+            deferredPrompt = null;
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        };
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ Bangali Homeo App installed successfully!');
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        });
     </script>
 </body>
 </html>
