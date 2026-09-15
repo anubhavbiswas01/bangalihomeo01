@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const db = require('./db/database');
 const mongo = require('./db/mongodb');
-const gsheet = require('./db/gsheet');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,8 +14,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 let dbReady = false;
 let dbInitPromise = null;
 app.use(async (req, res, next) => {
-    // If MongoDB or Google Sheets is configured, skip slow Turso initialization
-    if (mongo.isConfigured() || gsheet.isConfigured()) {
+    // If MongoDB is configured, skip slow Turso initialization
+    if (mongo.isConfigured()) {
         return next();
     }
     if (!dbReady) {

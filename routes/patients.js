@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
-const gsheet = require('../db/gsheet');
 const mongo = require('../db/mongodb');
 
 const useMongo = () => mongo.isConfigured();
-const useGSheet = () => !useMongo() && gsheet.isConfigured();
 
 // ── Generate next patient ID (PAT-00001, PAT-00002, …) ──
 async function nextPatientId() {
@@ -29,17 +27,6 @@ router.post('/', async (req, res) => {
 
         if (useMongo()) {
             const newPt = await mongo.createPatient({
-                name: name.trim(),
-                age: age ? parseInt(age, 10) : null,
-                gender: gender || null,
-                phone: phone ? phone.trim() : null,
-                address: address ? address.trim() : null
-            });
-            return res.status(201).json(newPt);
-        }
-
-        if (useGSheet()) {
-            const newPt = await gsheet.createPatient({
                 name: name.trim(),
                 age: age ? parseInt(age, 10) : null,
                 gender: gender || null,
@@ -81,11 +68,6 @@ router.get('/', async (req, res) => {
             }
         }
 
-        if (gsheet.isConfigured()) {
-            const patients = await gsheet.getAllPatients();
-            return res.json(patients);
-        }
-
         const patients = await db.all(
             `SELECT p.*,
                     COALESCE((SELECT MAX(created_at) FROM prescriptions WHERE patient_id = p.id OR patient_id = p.patient_id), p.created_at) AS last_visit_date
@@ -109,11 +91,6 @@ router.get('/stats', async (req, res) => {
             } catch (mErr) {
                 console.warn('⚠️ MongoDB stats error, falling back:', mErr.message);
             }
-        }
-
-        if (gsheet.isConfigured()) {
-            const stats = await gsheet.getStats();
-            return res.json(stats);
         }
 
         const pCount = (await db.get('SELECT COUNT(*) AS total FROM patients')) || { total: 0 };
@@ -146,11 +123,6 @@ router.get('/search', async (req, res) => {
             } catch (mErr) {
                 console.warn('⚠️ MongoDB search error, falling back:', mErr.message);
             }
-        }
-
-        if (gsheet.isConfigured()) {
-            const patients = await gsheet.searchPatients(q, showAll);
-            return res.json(patients);
         }
 
         if (!q) {
@@ -202,14 +174,6 @@ router.get('/:id', async (req, res) => {
             } catch (mErr) {
                 console.warn('⚠️ MongoDB getPatientById error, falling back:', mErr.message);
             }
-        }
-
-        if (gsheet.isConfigured()) {
-            const patient = await gsheet.getPatientById(req.params.id);
-            if (!patient || patient.error) {
-                return res.status(404).json({ error: 'Patient not found.' });
-            }
-            return res.json(patient);
         }
 
         const patient = await db.get(
@@ -269,18 +233,6 @@ router.put('/:id', async (req, res) => {
             return res.json(updated);
         }
 
-        if (useGSheet()) {
-            await gsheet.updatePatient(req.params.id, {
-                name: name.trim(),
-                age: age ? parseInt(age, 10) : null,
-                gender: gender || null,
-                phone: phone ? phone.trim() : null,
-                address: address ? address.trim() : null
-            });
-            const updated = await gsheet.getPatientById(req.params.id);
-            return res.json(updated);
-        }
-
         const patient = await db.get(
             'SELECT * FROM patients WHERE id = ? OR patient_id = ?',
             [req.params.id, req.params.id]
@@ -320,11 +272,6 @@ router.delete('/:id', async (req, res) => {
             if (!deleted) {
                 return res.status(404).json({ error: 'Patient not found.' });
             }
-            return res.json({ success: true, message: `Patient ${req.params.id} deleted successfully.` });
-        }
-
-        if (useGSheet()) {
-            await gsheet.deletePatient(req.params.id);
             return res.json({ success: true, message: `Patient ${req.params.id} deleted successfully.` });
         }
 

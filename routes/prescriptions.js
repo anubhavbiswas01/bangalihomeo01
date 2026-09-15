@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
-const gsheet = require('../db/gsheet');
 const mongo = require('../db/mongodb');
 
 const useMongo = () => mongo.isConfigured();
-const useGSheet = () => !useMongo() && gsheet.isConfigured();
 
 // ── Generate next Rx ID (RX-00001, RX-00002, …) ──
 async function nextRxId() {
@@ -41,45 +39,25 @@ router.post('/', async (req, res) => {
                     ptDetails = pt;
                 }
             } else {
-                const ptRow = await db.get('SELECT id, patient_id, name, age, gender, phone, address FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
-                if (ptRow) {
-                    ptNumId = ptRow.id;
-                    ptCode = ptRow.patient_id;
-                    ptDetails = ptRow;
+                const pt = await db.get('SELECT * FROM patients WHERE id = ? OR patient_id = ?', [patient_id, patient_id]);
+                if (pt) {
+                    ptNumId = pt.id;
+                    ptCode = pt.patient_id;
+                    ptDetails = pt;
                 }
             }
         } catch (e) {
-            // Ignore if DB not reachable
+            console.warn('Could not lookup patient code for Rx:', e.message);
         }
 
-        // Determine previous visit date from last prescription
-        let prevDate = previous_visit_date;
-        if (!prevDate) {
-            try {
-                if (useMongo()) {
-                    const pt = await mongo.getPatientById(ptCode || patient_id);
-                    if (pt && Array.isArray(pt.prescriptions) && pt.prescriptions.length > 0) {
-                        prevDate = pt.prescriptions[0].created_at;
-                    }
-                } else {
-                    const lastRx = await db.get(
-                        `SELECT created_at FROM prescriptions WHERE patient_id = ? OR patient_id = ? ORDER BY id DESC LIMIT 1`,
-                        [ptNumId, ptCode]
-                    );
-                    prevDate = lastRx ? lastRx.created_at : null;
-                }
-            } catch (e) {}
+        let prevDate = previous_visit_date || null;
+        if (!prevDate && ptDetails && Array.isArray(ptDetails.prescriptions) && ptDetails.prescriptions.length > 0) {
+            prevDate = ptDetails.prescriptions[0].created_at || ptDetails.prescriptions[0].date;
         }
 
         if (useMongo()) {
             const newRx = await mongo.createPrescription({
                 patient_id: ptCode || patient_id,
-                name: (ptDetails && ptDetails.name) || '',
-                patient_name: (ptDetails && ptDetails.name) || '',
-                age: (ptDetails && ptDetails.age) || '',
-                gender: (ptDetails && ptDetails.gender) || '',
-                phone: (ptDetails && ptDetails.phone) || '',
-                address: (ptDetails && ptDetails.address) || '',
                 complaints,
                 diagnosis,
                 tests: tests || '',
@@ -90,8 +68,6 @@ router.post('/', async (req, res) => {
             });
             return res.status(201).json({
                 ...newRx,
-                name: (ptDetails && ptDetails.name) || newRx.name || '',
-                patient_name: (ptDetails && ptDetails.name) || newRx.patient_name || '',
                 patient_code: ptCode || patient_id,
                 medicines: medList,
                 previous_visit_date: prevDate,
@@ -99,25 +75,6 @@ router.post('/', async (req, res) => {
             });
         }
 
-        if (useGSheet()) {
-            const newRx = await gsheet.createPrescription({
-                patient_id: ptCode || patient_id,
-                complaints,
-                diagnosis,
-                tests: tests || '',
-                next_visit_date: next_visit_date || null,
-                notes,
-                medicines: medList,
-                previous_visit_date: prevDate
-            });
-            return res.status(201).json({
-                ...newRx,
-                patient_code: ptCode || patient_id,
-                medicines: medList,
-                previous_visit_date: prevDate,
-                next_visit_date: next_visit_date || null
-            });
-        }
         const rxId = await nextRxId();
         const nowIso = new Date().toISOString();
 
@@ -199,26 +156,6 @@ router.get('/:rxId', async (req, res) => {
             const rx = await mongo.getPrescriptionById(req.params.rxId);
             if (!rx) {
                 return res.status(404).json({ error: 'Prescription not found.' });
-            }
-            return res.json(rx);
-        }
-
-        if (useGSheet()) {
-            const rx = await gsheet.getPrescriptionById(req.params.rxId);
-            if (!rx || rx.error) {
-                return res.status(404).json({ error: 'Prescription not found.' });
-            }
-            // If previous_visit_date was not calculated by gsheet, resolve it from patient's prescriptions
-            if (!rx.previous_visit_date && (rx.patient_code || rx.patient_id)) {
-                try {
-                    const pt = await gsheet.getPatientById(rx.patient_code || rx.patient_id);
-                    if (pt && Array.isArray(pt.prescriptions)) {
-                        const older = pt.prescriptions.filter(p => new Date(p.created_at) < new Date(rx.created_at));
-                        if (older.length > 0) {
-                            rx.previous_visit_date = older[0].created_at;
-                        }
-                    }
-                } catch (e) {}
             }
             return res.json(rx);
         }
